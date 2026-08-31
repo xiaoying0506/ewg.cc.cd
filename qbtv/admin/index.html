@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- PWA 移动端优化设置 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="广播台审核">
+    <title>广播台后台管理端</title>
+
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --dark: #2d3436;
+            --light: #f8f9fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f1f2f6; color: var(--dark); padding-bottom: 30px; }
+
+        header {
+            background: linear-gradient(135deg, #4834d4, var(--primary));
+            color: white; padding: 20px 15px; text-align: center;
+            position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        header h1 { font-size: 1.3rem; }
+
+        /* 顶部用户栏与退出按钮 */
+        .user-bar {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 8px; font-size: 0.8rem;
+        }
+        .btn-logout {
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid white;
+            padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 0.75rem;
+        }
+
+        .container { max-width: 600px; margin: 15px auto; padding: 0 12px; }
+
+        /* 登录卡片 */
+        .login-card {
+            background: white; border-radius: 12px; padding: 25px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-top: 40px;
+        }
+        .login-card h2 { font-size: 1.2rem; text-align: center; color: var(--primary); margin-bottom: 20px; }
+
+        .nav-tabs {
+            display: flex; background: white; border-radius: 10px; padding: 5px;
+            margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .tab-btn {
+            flex: 1; border: none; background: transparent; padding: 10px 4px;
+            font-size: 0.8rem; font-weight: bold; color: #747d8c; border-radius: 8px; cursor: pointer;
+            white-space: nowrap; text-align: center;
+        }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .card {
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+        }
+
+        .song-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 4px; }
+        .song-meta { font-size: 0.85rem; color: #636e72; margin-bottom: 8px; }
+
+        .status-badge {
+            display: inline-block; padding: 3px 8px; border-radius: 12px;
+            font-size: 0.75rem; font-weight: bold;
+        }
+        .badge-pending { background: #ffeaa7; color: #d63031; }
+        .badge-approved { background: #55efc4; color: #008148; }
+        .badge-played { background: #a29bfe; color: #2d3436; }
+        .badge-rejected { background: #ff7675; color: #ffffff; }
+
+        audio { width: 100%; height: 36px; margin: 10px 0; }
+
+        .btn-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .btn {
+            flex: 1; border: none; padding: 8px 12px; border-radius: 6px;
+            font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center; min-width: 80px;
+        }
+        .btn-approve { background: var(--success); color: white; }
+        .btn-reject { background: #e17055; color: white; }
+        .btn-delete { background: #fab1a0; color: #d63031; }
+        .btn-play { background: var(--primary); color: white; }
+
+        /* 表单样式 */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #dfe4ea; border-radius: 8px; font-size: 0.9rem;
+        }
+        .form-group textarea { height: 100px; }
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; padding: 12px;
+            border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 0.95rem;
+        }
+
+        .reject-reason-box {
+            background-color: #fff0f0; border-left: 3px solid #ff7675;
+            padding: 6px 10px; font-size: 0.8rem; color: #d63031; margin: 6px 0; border-radius: 4px;
+        }
+
+        .empty-hint { text-align: center; color: #b2bec3; padding: 30px 0; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📻 广播台管理后台</h1>
+        <div id="userBar" class="user-bar hidden">
+            <button class="btn-logout" onclick="handleLogout()">退出登录</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 1. 管理员登录模块 -->
+        <div id="loginSection" class="login-card">
+            <h2>🔐 管理员身份验证</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="adminEmail">管理员邮箱</label>
+                    <input type="email" id="adminEmail" placeholder="admin@163.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">密码</label>
+                    <input type="password" id="adminPassword" placeholder="请输入管理员密码" required>
+                </div>
+                <button type="submit" class="btn-submit" id="loginBtn">登录后台</button>
+            </form>
+        </div>
+
+        <!-- 2. 控制台主界面 (默认隐藏，登录成功后显示) -->
+        <div id="dashboardSection" class="hidden">
+            <!-- 标签页切换 -->
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('pending')">待审核 <span id="pendingCount"></span></button>
+                <button class="tab-btn" onclick="switchTab('approved')">待播放榜单</button>
+                <button class="tab-btn" onclick="switchTab('played')">已播放历史</button>
+                <button class="tab-btn" onclick="switchTab('rejected')">已驳回</button>
+                <button class="tab-btn" onclick="switchTab('notice')">公告发布</button>
+            </div>
+
+            <!-- 待审核列表 -->
+            <div id="pendingTab" class="tab-content">
+                <div id="pendingList"><div class="empty-hint">加载中...</div></div>
+            </div>
+
+            <!-- 待播放列表 -->
+            <div id="approvedTab" class="tab-content hidden">
+                <div id="approvedList"><div class="empty-hint">加载中...</div></div>
+            </div>
+
+            <!-- 已播放列表 -->
+            <div id="playedTab" class="tab-content hidden">
+                <div id="playedList"><div class="empty-hint">加载中...</div></div>
+            </div>
+
+            <!-- 已驳回列表 -->
+            <div id="rejectedTab" class="tab-content hidden">
+                <div id="rejectedList"><div class="empty-hint">加载中...</div></div>
+            </div>
+
+            <!-- 公告管理 -->
+            <div id="noticeTab" class="tab-content hidden">
+                <div class="card">
+                    <div class="form-group">
+                        <label>发布/更新首页广播公告</label>
+                        <textarea id="noticeInput" placeholder="输入广播台公告内容（例如：本周点歌截至周五18:00...）"></textarea>
+                    </div>
+                    <button class="btn-submit" onclick="publishNotice()">更新公告</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 指定唯一管理员邮箱白名单
+        const ADMIN_EMAIL = 'admin@163.com';
+
+        // 初始化 Supabase 配置
+        const SUPABASE_URL = 'https://mnlmdlqfqyjhnqzjdjfg.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_4HrnKeD4I4NNrMypwy1cjA_js3mIwVS';
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let activeTab = 'pending';
+
+        // 监听登录状态自动保持与权限校验
+        db.auth.onAuthStateChange((event, session) => {
+            if (session && session.user) {
+                if (session.user.email === ADMIN_EMAIL) {
+                    showDashboard();
+                } else {
+                    alert('⚠️ 账号 ' + session.user.email + ' 无管理员访问权限！');
+                    db.auth.signOut();
+                    showLoginForm();
+                }
+            } else {
+                showLoginForm();
+            }
+        });
+
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('userBar').classList.remove('hidden');
+            fetchPendingSongs();
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('userBar').classList.add('hidden');
+        }
+
+        // 1. 管理员登录处理
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            const btn = document.getElementById('loginBtn');
+
+            if (email !== ADMIN_EMAIL) {
+                alert('⚠️ 只有管理员账号 (' + ADMIN_EMAIL + ') 允许登录此后台！');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = '正在验证...';
+
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                alert('登录失败: ' + error.message);
+            }
+
+            btn.disabled = false;
+            btn.innerText = '登录后台';
+        });
+
+        // 退出登录
+        async function handleLogout() {
+            await db.auth.signOut();
+        }
+
+        // 2. 切换标签页
+        function switchTab(tabName) {
+            activeTab = tabName;
+            const tabs = ['pending', 'approved', 'played', 'rejected', 'notice'];
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', tabs[idx] === tabName);
+            });
+
+            document.getElementById('pendingTab').classList.toggle('hidden', tabName !== 'pending');
+            document.getElementById('approvedTab').classList.toggle('hidden', tabName !== 'approved');
+            document.getElementById('playedTab').classList.toggle('hidden', tabName !== 'played');
+            document.getElementById('rejectedTab').classList.toggle('hidden', tabName !== 'rejected');
+            document.getElementById('noticeTab').classList.toggle('hidden', tabName !== 'notice');
+
+            if (tabName === 'pending') fetchPendingSongs();
+            if (tabName === 'approved') fetchApprovedSongs();
+            if (tabName === 'played') fetchPlayedSongs();
+            if (tabName === 'rejected') fetchRejectedSongs();
+            if (tabName === 'notice') fetchCurrentNotice();
+        }
+
+        // 3. 获取待审核歌曲列表
+        async function fetchPendingSongs() {
+            const listEl = document.getElementById('pendingList');
+            listEl.innerHTML = '<div class="empty-hint">加载中...</div>';
+
+            const { data: songs, error } = await db
+                .from('songs')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                listEl.innerHTML = `<div class="empty-hint" style="color:red;">加载失败: ${error.message}</div>`;
+                return;
+            }
+
+            document.getElementById('pendingCount').innerText = songs.length ? `(${songs.length})` : '';
+
+            if (songs.length === 0) {
+                listEl.innerHTML = '<div class="empty-hint">🎉 当前没有待审核的点歌</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            songs.forEach(song => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const audioPlayer = song.audio_url ? `<audio controls src="${song.audio_url}"></audio>` : '<div style="font-size:0.8rem; color:#999; margin:8px 0;">(未上传音频)</div>';
+
+                card.innerHTML = `
+                    <div class="song-title">🎶 ${escapeHtml(song.song_name)}</div>
+                    <div class="song-meta">歌手: ${escapeHtml(song.artist)}</div>
+                    ${audioPlayer}
+                    <div class="btn-group">
+                        <button class="btn btn-approve" onclick="updateStatus(${song.id}, 'approved')">🟢 通过</button>
+                        <button class="btn btn-reject" onclick="rejectSong(${song.id})">🔴 驳回</button>
+                        <button class="btn btn-delete" onclick="deleteSong(${song.id})">🗑️ 删除(恢复额度)</button>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        // 4. 获取待播放歌曲榜单 (status === 'approved')
+        async function fetchApprovedSongs() {
+            const listEl = document.getElementById('approvedList');
+            listEl.innerHTML = '<div class="empty-hint">加载中...</div>';
+
+            const { data: songs, error } = await db
+                .from('songs')
+                .select('*')
+                .eq('status', 'approved')
+                .order('votes', { ascending: false });
+
+            if (error || !songs) {
+                listEl.innerHTML = '<div class="empty-hint" style="color:red;">加载失败</div>';
+                return;
+            }
+
+            if (songs.length === 0) {
+                listEl.innerHTML = '<div class="empty-hint">暂无待播放的歌曲</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            songs.forEach(song => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const audioPlayer = song.audio_url ? `<audio controls src="${song.audio_url}"></audio>` : '';
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="song-title">🎶 ${escapeHtml(song.song_name)}</div>
+                        <span class="status-badge badge-approved">🟢 待播放 (赞: ${song.votes || 0})</span>
+                    </div>
+                    <div class="song-meta" style="margin-top:4px;">歌手: ${escapeHtml(song.artist)}</div>
+                    ${audioPlayer}
+                    <div class="btn-group">
+                        <button class="btn btn-play" onclick="updateStatus(${song.id}, 'played')">📻 标记为已播放</button>
+                        <button class="btn btn-reject" onclick="rejectSong(${song.id})">🔴 驳回</button>
+                        <button class="btn btn-delete" onclick="deleteSong(${song.id})">🗑️ 删除</button>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        // 5. 获取已播放历史列表 (status === 'played'，无驳回功能)
+        async function fetchPlayedSongs() {
+            const listEl = document.getElementById('playedList');
+            listEl.innerHTML = '<div class="empty-hint">加载中...</div>';
+
+            const { data: songs, error } = await db
+                .from('songs')
+                .select('*')
+                .eq('status', 'played')
+                .order('created_at', { ascending: false });
+
+            if (error || !songs) {
+                listEl.innerHTML = '<div class="empty-hint" style="color:red;">加载失败</div>';
+                return;
+            }
+
+            if (songs.length === 0) {
+                listEl.innerHTML = '<div class="empty-hint">暂无已播放记录</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            songs.forEach(song => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const audioPlayer = song.audio_url ? `<audio controls src="${song.audio_url}"></audio>` : '';
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="song-title">🎶 ${escapeHtml(song.song_name)}</div>
+                        <span class="status-badge badge-played">🟣 已播放</span>
+                    </div>
+                    <div class="song-meta" style="margin-top:4px;">歌手: ${escapeHtml(song.artist)}</div>
+                    ${audioPlayer}
+                    <div class="btn-group">
+                        <button class="btn btn-delete" onclick="deleteSong(${song.id})">🗑️ 彻底删除</button>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        // 6. 获取已驳回歌曲列表 (status === 'rejected')
+        async function fetchRejectedSongs() {
+            const listEl = document.getElementById('rejectedList');
+            listEl.innerHTML = '<div class="empty-hint">加载中...</div>';
+
+            const { data: songs, error } = await db
+                .from('songs')
+                .select('*')
+                .eq('status', 'rejected')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                listEl.innerHTML = '<div class="empty-hint" style="color:red;">加载失败</div>';
+                return;
+            }
+
+            if (songs.length === 0) {
+                listEl.innerHTML = '<div class="empty-hint">暂无已驳回的歌曲</div>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            songs.forEach(song => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const audioPlayer = song.audio_url ? `<audio controls src="${song.audio_url}"></audio>` : '';
+                const reasonHtml = song.reject_reason 
+                    ? `<div class="reject-reason-box">驳回原因: ${escapeHtml(song.reject_reason)}</div>` 
+                    : '<div class="reject-reason-box">驳回原因: 未填写</div>';
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="song-title">🎶 ${escapeHtml(song.song_name)}</div>
+                        <span class="status-badge badge-rejected">🔴 已驳回</span>
+                    </div>
+                    <div class="song-meta" style="margin-top:4px;">歌手: ${escapeHtml(song.artist)}</div>
+                    ${reasonHtml}
+                    ${audioPlayer}
+                    <div class="btn-group">
+                        <button class="btn btn-approve" onclick="updateStatus(${song.id}, 'approved')">🟢 重新通过</button>
+                        <button class="btn btn-delete" onclick="deleteSong(${song.id})">🗑️ 彻底删除</button>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        // 7. 通用更新与删除函数
+        async function updateStatus(songId, status) {
+            const { error } = await db.from('songs').update({ status, reject_reason: null }).eq('id', songId);
+            if (error) {
+                alert('操作失败: ' + error.message);
+            } else {
+                refreshCurrentTab();
+            }
+        }
+
+        async function rejectSong(songId) {
+            const reason = prompt('请输入未通过原因（选填，如：歌曲版权限制 / 歌词不符合规范）：');
+            if (reason === null) return; 
+
+            const { error } = await db.from('songs').update({
+                status: 'rejected',
+                reject_reason: reason
+            }).eq('id', songId);
+
+            if (error) {
+                alert('驳回失败: ' + error.message);
+            } else {
+                refreshCurrentTab();
+            }
+        }
+
+        async function deleteSong(songId) {
+            if (!confirm('确定彻底删除该条记录吗？删除后该学生本周将恢复 1 次点歌额度。')) return;
+
+            const { error } = await db.from('songs').delete().eq('id', songId);
+            if (error) {
+                alert('删除失败: ' + error.message);
+            } else {
+                refreshCurrentTab();
+            }
+        }
+
+        function refreshCurrentTab() {
+            if (activeTab === 'pending') fetchPendingSongs();
+            if (activeTab === 'approved') fetchApprovedSongs();
+            if (activeTab === 'played') fetchPlayedSongs();
+            if (activeTab === 'rejected') fetchRejectedSongs();
+        }
+
+        // 8. 公告管理
+        async function fetchCurrentNotice() {
+            const { data } = await db.from('announcements').select('content').eq('is_active', true).order('created_at', { ascending: false }).limit(1);
+            if (data && data.length > 0) {
+                document.getElementById('noticeInput').value = data[0].content;
+            }
+        }
+
+        async function publishNotice() {
+            const content = document.getElementById('noticeInput').value;
+            
+            await db.from('announcements').update({ is_active: false }).eq('is_active', true);
+            
+            if (!content.trim()) {
+                alert('🎉 公告已清空/关闭');
+                return;
+            }
+
+            const { error } = await db.from('announcements').insert([{ content, is_active: true }]);
+
+            if (error) {
+                alert('发布失败: ' + error.message);
+            } else {
+                alert('🎉 公告发布成功！');
+            }
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>

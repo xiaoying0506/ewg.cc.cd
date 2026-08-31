@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园点歌</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --dark-color: #2d3436;
+            --light-color: #f8f9fa;
+            --accent-color: #ff7675;
+            --notice-bg: #fff9db;
+            --notice-border: #ffe066;
+            --notice-text: #f59f00;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'PingFang SC', sans-serif; }
+        body { background-color: #f1f2f6; color: var(--dark-color); padding-bottom: 50px; }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white; text-align: center; padding: 25px 20px;
+            position: relative;
+        }
+        header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+
+        /* 用户信息与退出按钮 */
+        .user-bar {
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.2);
+            padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;
+        }
+        .btn-logout {
+            background: white; color: var(--primary-color); border: none;
+            padding: 4px 10px; border-radius: 12px; cursor: pointer; font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-logout:hover { background: #f0f0f0; }
+
+        /* 登录卡片布局 */
+        .auth-container {
+            max-width: 400px; margin: 60px auto; padding: 0 15px;
+        }
+        .auth-tabs {
+            display: flex; margin-bottom: 20px; border-bottom: 2px solid #dfe4ea;
+        }
+        .auth-tab {
+            flex: 1; text-align: center; padding: 10px; cursor: pointer;
+            font-weight: bold; color: #747d8c;
+        }
+        .auth-tab.active {
+            color: var(--primary-color); border-bottom: 3px solid var(--primary-color);
+        }
+
+        /* 公告栏样式 */
+        .notice-card {
+            background-color: var(--notice-bg);
+            border: 1px solid var(--notice-border);
+            border-left: 5px solid var(--notice-text);
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        .notice-card .notice-icon { font-size: 1.2rem; }
+        .notice-card .notice-content { flex: 1; line-height: 1.4; }
+
+        /* 主界面网格布局 */
+        .container {
+            max-width: 1000px; margin: 20px auto 0 auto; padding: 0 15px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+
+        @media (max-width: 768px) { 
+            .container { grid-template-columns: 1fr; } 
+            header { padding-bottom: 65px; }
+            .user-bar { top: auto; bottom: 12px; transform: none; right: 50%; transform: translateX(50%); }
+        }
+
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card h2 { font-size: 1.2rem; margin-bottom: 15px; color: var(--primary-color); border-bottom: 2px solid var(--light-color); padding-bottom: 8px; }
+
+        .limit-hint {
+            font-size: 0.8rem; color: #888; font-weight: normal; margin-left: 8px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #dfe4ea; border-radius: 6px; font-size: 0.9rem; }
+
+        .btn-submit {
+            width: 100%; background-color: var(--primary-color); color: white;
+            border: none; padding: 10px; font-size: 0.95rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-submit:hover { background-color: #5b4cc4; }
+
+        .song-list { list-style: none; max-height: 400px; overflow-y: auto; }
+        .song-item {
+            background-color: var(--light-color); border-radius: 8px; padding: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .song-info { flex: 1; padding-right: 10px; }
+        .song-title { font-weight: bold; font-size: 1rem; }
+        .song-artist { font-size: 0.85rem; color: #747d8c; margin-top: 2px; }
+        
+        audio { margin-top: 8px; width: 100%; max-height: 32px; }
+
+        .vote-btn {
+            background: white; border: 1px solid var(--accent-color); color: var(--accent-color);
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 4px; white-space: nowrap;
+        }
+        .vote-btn.voted { background-color: var(--accent-color); color: white; }
+
+        /* 状态标签样式 */
+        .status-badge {
+            display: inline-block; padding: 3px 8px; border-radius: 12px;
+            font-size: 0.75rem; font-weight: bold; margin-top: 5px;
+        }
+        .status-pending { background-color: #ffeaa7; color: #d63031; }
+        .status-approved { background-color: #55efc4; color: #008148; }
+        .status-played { background-color: #a29bfe; color: #2d3436; }
+        .status-rejected { background-color: #ff7675; color: #ffffff; }
+
+        /* 隐藏元素的辅助类 */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>校园点歌</h1>
+        <div id="userBar" class="user-bar hidden">
+            <span id="userEmail"></span>
+            <button class="btn-logout" onclick="handleLogout()">退出登录</button>
+        </div>
+    </header>
+
+    <!-- 1. 登录与注册模块 -->
+    <div id="authSection" class="auth-container">
+        <div class="card">
+            <div class="auth-tabs">
+                <div id="loginTab" class="auth-tab active" onclick="switchAuthMode('login')">登录</div>
+                <div id="registerTab" class="auth-tab" onclick="switchAuthMode('register')">注册账号</div>
+            </div>
+
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="authEmail">邮箱地址 *</label>
+                    <input type="email" id="authEmail" placeholder="yourname@school.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">密码 *</label>
+                    <input type="password" id="authPassword" placeholder="请输入密码 (至少6位)" required minlength="6">
+                </div>
+                <button type="submit" class="btn-submit" id="authBtn">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. 主应用模块 (默认隐藏) -->
+    <div id="appSection" class="container hidden">
+        <!-- 左侧：公告栏 + 点歌表单 + 个人点歌历史 -->
+        <div>
+            <!-- 📢 广播台公告栏 -->
+            <div id="noticeContainer" class="notice-card hidden">
+                <span class="notice-icon">📢</span>
+                <div class="notice-content" id="noticeText">加载公告中...</div>
+            </div>
+
+            <!-- 点歌表单 -->
+            <div class="card">
+                <h2>🎵 提交点歌 <span id="weekLimitHint" class="limit-hint">本周已用 0/2 次额度</span></h2>
+                <form id="songForm">
+                    <div class="form-group">
+                        <label for="songName">歌曲名称 *</label>
+                        <input type="text" id="songName" placeholder="例如：晴天" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="artist">演唱歌手 *</label>
+                        <input type="text" id="artist" placeholder="例如：周杰伦" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="musicFile">音频文件 (选填, mp3/wav)</label>
+                        <input type="file" id="musicFile" accept="audio/*">
+                    </div>
+                    <button type="submit" class="btn-submit" id="submitBtn">提交点歌</button>
+                </form>
+            </div>
+
+            <!-- 我的点歌历史与审核进度追踪 -->
+            <div class="card">
+                <h2>🔍 我的点歌记录 (状态追踪)</h2>
+                <ul class="song-list" id="myHistoryList">
+                    <li style="text-align:center; color:#999; padding:15px;">暂无点歌记录</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 右侧：全校公共已通过点播榜 -->
+        <div>
+            <div class="card">
+                <h2>📜 广播台播放单 (已审核/已播放)</h2>
+                <ul class="song-list" id="publicSongList">
+                    <li style="text-align:center; color:#999; padding:20px;">加载中...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 初始化 Supabase 参数
+        const SUPABASE_URL = 'https://mnlmdlqfqyjhnqzjdjfg.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_4HrnKeD4I4NNrMypwy1cjA_js3mIwVS';
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let isLoginMode = true;
+
+        // 切换登录 / 注册模式 UI
+        function switchAuthMode(mode) {
+            isLoginMode = mode === 'login';
+            document.getElementById('loginTab').classList.toggle('active', isLoginMode);
+            document.getElementById('registerTab').classList.toggle('active', !isLoginMode);
+            document.getElementById('authBtn').innerText = isLoginMode ? '登录' : '注册';
+        }
+
+        // 监听身份认证状态变化（自动维持登录态）
+        db.auth.onAuthStateChange((event, session) => {
+            if (session && session.user) {
+                currentUser = session.user;
+                showAppUI();
+            } else {
+                currentUser = null;
+                showAuthUI();
+            }
+        });
+
+        function showAppUI() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            document.getElementById('userBar').classList.remove('hidden');
+            document.getElementById('userEmail').innerText = currentUser.email;
+
+            // 加载数据
+            fetchNotice();
+            fetchPublicSongs();
+            fetchMyHistory();
+        }
+
+        function showAuthUI() {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('appSection').classList.add('hidden');
+            document.getElementById('userBar').classList.add('hidden');
+        }
+
+        // 2. 登录 / 注册提交逻辑
+        document.getElementById('authForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const authBtn = document.getElementById('authBtn');
+
+            authBtn.disabled = true;
+            authBtn.innerText = '处理中...';
+
+            try {
+                if (isLoginMode) {
+                    const { error } = await db.auth.signInWithPassword({ email, password });
+                    if (error) alert('登录失败: ' + error.message);
+                } else {
+                    const { error } = await db.auth.signUp({ email, password });
+                    if (error) {
+                        alert('注册失败: ' + error.message);
+                    } else {
+                        alert('🎉 注册成功！如果配置了邮箱验证，请查收邮件确认；或直接尝试登录。');
+                        switchAuthMode('login');
+                    }
+                }
+            } catch (err) {
+                alert('网络异常: ' + err.message);
+            } finally {
+                authBtn.disabled = false;
+                authBtn.innerText = isLoginMode ? '登录' : '注册';
+            }
+        });
+
+        // 退出登录
+        async function handleLogout() {
+            await db.auth.signOut();
+        }
+
+        // 3. 加载广播台最新公告（如为空则保持隐藏）
+        async function fetchNotice() {
+            const { data, error } = await db
+                .from('announcements')
+                .select('content')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (!error && data && data.length > 0 && data[0].content && data[0].content.trim() !== '') {
+                document.getElementById('noticeText').innerText = data[0].content;
+                document.getElementById('noticeContainer').classList.remove('hidden');
+            } else {
+                document.getElementById('noticeContainer').classList.add('hidden');
+            }
+        }
+
+        // 获取本周一 00:00:00 的 ISO 时间戳（用于限制周点歌次数）
+        function getMondayOfWeek() {
+            const now = new Date();
+            const day = now.getDay(); // 0 是周日, 1-6 是周一到周六
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(now.setDate(diff));
+            monday.setHours(0, 0, 0, 0);
+            return monday.toISOString();
+        }
+
+        // 检查本周已用点歌额度（包含所有状态：pending, approved, played, rejected）
+        async function getWeeklySongCount() {
+            const mondayISO = getMondayOfWeek();
+            const { count, error } = await db
+                .from('songs')
+                .select('id', { count: 'exact', head: true })
+                .eq('voter_id', currentUser.id)
+                .gte('created_at', mondayISO);
+
+            return error ? 0 : count;
+        }
+
+        // 4. 加载公共榜单 (status 仅显示 approved 或 played)
+        async function fetchPublicSongs() {
+            const publicListEl = document.getElementById('publicSongList');
+
+            const { data: songs, error } = await db
+                .from('songs')
+                .select('*')
+                .in('status', ['approved', 'played'])
+                .order('votes', { ascending: false });
+
+            if (error || !songs) {
+                publicListEl.innerHTML = '<li style="text-align:center; color:red;">加载失败</li>';
+                return;
+            }
+
+            if (songs.length === 0) {
+                publicListEl.innerHTML = '<li style="text-align:center; color:#999; padding:20px;">暂无已通过审核的歌曲</li>';
+                return;
+            }
+
+            // 查询当前用户（绑定账号 UID）的点赞记录
+            const songIds = songs.map(s => s.id);
+            const { data: userVotes } = await db
+                .from('song_votes')
+                .select('song_id')
+                .eq('voter_id', currentUser.id)
+                .in('song_id', songIds);
+
+            const votedSongIds = new Set((userVotes || []).map(v => v.song_id));
+
+            publicListEl.innerHTML = '';
+            songs.forEach((song) => {
+                const isVoted = votedSongIds.has(song.id);
+                const li = document.createElement('li');
+                li.className = 'song-item';
+                
+                let audioPlayer = song.audio_url ? `<audio controls src="${song.audio_url}"></audio>` : '';
+                let statusBadge = song.status === 'played' 
+                    ? `<span class="status-badge status-played">📻 已播放</span>` 
+                    : `<span class="status-badge status-approved">🟢 审核通过/待播放</span>`;
+
+                li.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">🎶 ${escapeHtml(song.song_name)}</div>
+                        <div class="song-artist">歌手: ${escapeHtml(song.artist)}</div>
+                        ${statusBadge}
+                        ${audioPlayer}
+                    </div>
+                    <button class="vote-btn ${isVoted ? 'voted' : ''}" onclick="toggleVote(${song.id}, ${song.votes}, ${isVoted})">
+                        ❤️ <span>${song.votes || 0}</span>
+                    </button>
+                `;
+                publicListEl.appendChild(li);
+            });
+        }
+
+        // 5. 加载“我的点歌历史”及更新周额度提示
+        async function fetchMyHistory() {
+            const historyListEl = document.getElementById('myHistoryList');
+
+            // 实时同步更新本周已点歌额度文字
+            const currentWeeklyCount = await getWeeklySongCount();
+            document.getElementById('weekLimitHint').innerText = `本周已用 ${currentWeeklyCount}/2 次额度`;
+
+            const { data: mySongs, error } = await db
+                .from('songs')
+                .select('*')
+                .eq('voter_id', currentUser.id) // 绑定当前登录用户的 UID
+                .order('created_at', { ascending: false });
+
+            if (error || !mySongs) {
+                historyListEl.innerHTML = '<li style="text-align:center; color:red;">加载历史失败</li>';
+                return;
+            }
+
+            if (mySongs.length === 0) {
+                historyListEl.innerHTML = '<li style="text-align:center; color:#999; padding:15px;">你还没有点过歌哦</li>';
+                return;
+            }
+
+            historyListEl.innerHTML = '';
+            mySongs.forEach((song) => {
+                const li = document.createElement('li');
+                li.className = 'song-item';
+
+                let statusBadge = '';
+                let reasonNotice = '';
+
+                if (song.status === 'pending') {
+                    statusBadge = `<span class="status-badge status-pending">🟡 审核中</span>`;
+                } else if (song.status === 'approved') {
+                    statusBadge = `<span class="status-badge status-approved">🟢 审核通过 / 排队中</span>`;
+                } else if (song.status === 'played') {
+                    statusBadge = `<span class="status-badge status-played">🟣 已在广播台播放</span>`;
+                } else if (song.status === 'rejected') {
+                    statusBadge = `<span class="status-badge status-rejected">🔴 审核未通过</span>`;
+                    if (song.reject_reason) {
+                        reasonNotice = `<div style="font-size:0.8rem; color:#d63031; margin-top:6px; background:#ffeaa7; padding:4px 8px; border-radius:4px;">⚠️ 未通过原因：${escapeHtml(song.reject_reason)}</div>`;
+                    }
+                }
+
+                li.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">🎶 ${escapeHtml(song.song_name)}</div>
+                        <div class="song-artist">歌手: ${escapeHtml(song.artist)}</div>
+                        <div>${statusBadge}</div>
+                        ${reasonNotice}
+                    </div>
+                `;
+                historyListEl.appendChild(li);
+            });
+        }
+
+        // 6. 提交点歌表单处理（含 weekly count 校验）
+        document.getElementById('songForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+
+            // 检查本周点歌次数是否受限（审核未通过同样算入已用额度）
+            const weeklyCount = await getWeeklySongCount();
+            if (weeklyCount >= 2) {
+                alert('⚠️ 提交失败：每位同学每周最多仅能点歌 2 次（包含审核未通过的记录）。如果管理员在后台清空了您的记录，刷页后会自动恢复额度。');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = '正在上传...';
+
+            let audioUrl = '';
+            const fileInput = document.getElementById('musicFile');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const fileName = `${Date.now()}_${file.name}`;
+                const { error: uploadError } = await db.storage
+                    .from('music-files')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    alert('音频上传失败: ' + uploadError.message);
+                    btn.disabled = false;
+                    btn.innerText = '提交点歌';
+                    return;
+                }
+
+                const { data: publicUrlData } = db.storage
+                    .from('music-files')
+                    .getPublicUrl(fileName);
+
+                audioUrl = publicUrlData.publicUrl;
+            }
+
+            // 将 currentUser.id 记录为提交人 UID，默认状态为 pending
+            const { error } = await db.from('songs').insert([{
+                song_name: document.getElementById('songName').value,
+                artist: document.getElementById('artist').value,
+                audio_url: audioUrl,
+                status: 'pending',
+                voter_id: currentUser.id, 
+                votes: 0
+            }]);
+
+            if (error) {
+                alert('提交失败: ' + error.message);
+            } else {
+                alert('🎉 提交成功！请在下方“我的点歌记录”追踪审核状态。');
+                this.reset();
+                fetchMyHistory();
+            }
+
+            btn.disabled = false;
+            btn.innerText = '提交点歌';
+        });
+
+        // 7. 点赞切换功能
+        async function toggleVote(songId, currentVotes, isVoted) {
+            if (isVoted) {
+                await db.from('song_votes').delete().eq('song_id', songId).eq('voter_id', currentUser.id);
+                await db.from('songs').update({ votes: Math.max(0, currentVotes - 1) }).eq('id', songId);
+            } else {
+                await db.from('song_votes').insert([{ song_id: songId, voter_id: currentUser.id }]);
+                await db.from('songs').update({ votes: currentVotes + 1 }).eq('id', songId);
+            }
+            fetchPublicSongs();
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
