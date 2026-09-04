@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>手环地图导航控制端</title>
-  <!-- 引入高德地图 API（请将 key 替换为你申请的高德 Web 端 Key） -->
-  <script src="https://webapi.amap.com/maps?v=2.0&5151a77302e2f3dfd81469a3ac4629ad&plugin=AMap.Walking,AMap.Geolocation"></script>
+  
+  <!-- 高德地图安全密钥配置（高德 2021 年后的要求） -->
+  <script type="text/javascript">
+    window._AMapSecurityConfig = {
+      securityJsCode: '你的高德安全密钥' // 替换为你高德控制台申请的 securityJsCode
+    };
+  </script>
+  <!-- 替换 key 你的高德地图 Web 端 Key -->
+  <script src="https://webapi.amap.com/maps?v=2.0&key=你的高德Key&plugin=AMap.Walking,AMap.Geolocation"></script>
+  
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 16px; background-color: #f5f5f7; }
     .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
@@ -13,8 +21,7 @@
     .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
     input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
     button { padding: 10px 16px; background-color: #007aff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    button:disabled { background-color: #ccc; }
-    .status-text { font-size: 14px; color: #666; margin-top: 8px; }
+    .status-box { font-size: 14px; color: #333; background: #eef2ff; padding: 10px; border-radius: 8px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -32,7 +39,7 @@
       <button id="btnStartNav">2. 计算路线并推送</button>
     </div>
 
-    <div class="status-text" id="statusText">状态：等待连接手环蓝牙...</div>
+    <div class="status-box" id="statusText">正在检查环境支持度...</div>
   </div>
 
   <script>
@@ -40,68 +47,111 @@
     let bleDevice, bleCharacteristic;
     let currentLngLat = null;
 
-    // 1. 初始化地图与实时 GPS 定位
-    function initMap() {
-      map = new AMap.Map('map', { zoom: 15 });
-
-      AMap.plugin(['AMap.Geolocation', 'AMap.Walking'], function() {
-        geolocation = new AMap.Geolocation({
-          enableHighAccuracy: true,
-          timeout: 10000,
-          showMarker: true,
-          panToLocation: true
-        });
-        map.addControl(geolocation);
-
-        // 获取当前位置并开启实时追踪
-        geolocation.getCurrentPosition(function(status, result) {
-          if (status === 'complete') {
-            currentLngLat = [result.position.getLng(), result.position.getLat()];
-            updateStatus('定位成功，当前位置已获取');
-          }
-        });
-
-        // 监听 GPS 实时移动
-        geolocation.watchPosition();
-        AMap.event.addListener(geolocation, 'result', function(data) {
-          currentLngLat = [data.position.getLng(), data.position.getLat()];
-          // 位置发生移动时自动重新推送路线数据
-          calculateAndPushRoute();
-        });
-      });
+    function logStatus(msg) {
+      console.log(msg);
+      document.getElementById('statusText').innerText = msg;
     }
 
-    // 2. 连接手环蓝牙 (Web Bluetooth API)
-    document.getElementById('btnConnectBle').addEventListener('click', async () => {
+    // 环境能力检查
+    window.onload = function() {
+      if (!navigator.bluetooth) {
+        alert('警告：当前浏览器不支持 Web Bluetooth API！\n请确保使用 Chrome/Edge 浏览器，且通过 http://localhost 或 HTTPS 访问。');
+        logStatus('❌ 当前环境不支持蓝牙 API（不能直接双击打开本地 html 文件）');
+      } else {
+        logStatus('✅ 蓝牙环境就绪，请点击按钮连接蓝牙');
+      }
+      initMap();
+    };
+
+    // 1. 初始化地图
+    function initMap() {
       try {
-        updateStatus('正在搜索蓝牙设备...');
+        map = new AMap.Map('map', { zoom: 15 });
+        AMap.plugin(['AMap.Geolocation', 'AMap.Walking'], function() {
+          geolocation = new AMap.Geolocation({
+            enableHighAccuracy: true,
+            timeout: 10000,
+            showMarker: true,
+            panToLocation: true
+          });
+          map.addControl(geolocation);
+
+          geolocation.getCurrentPosition(function(status, result) {
+            if (status === 'complete') {
+              currentLngLat = [result.position.getLng(), result.position.getLat()];
+              logStatus('✅ GPS 定位成功，可以搜索路线了');
+            } else {
+              logStatus('⚠️ 定位失败，请允许网页获取位置信息');
+            }
+          });
+
+          geolocation.watchPosition();
+          AMap.event.addListener(geolocation, 'result', function(data) {
+            currentLngLat = [data.position.getLng(), data.position.getLat()];
+            calculateAndPushRoute();
+          });
+        });
+      } catch (e) {
+        logStatus('⚠️ 地图加载失败，请检查 Key 和 SecurityJsCode 是否配置');
+      }
+    }
+
+    // 2. 连接手环蓝牙
+    document.getElementById('btnConnectBle').addEventListener('click', async () => {
+      if (!navigator.bluetooth) {
+        alert('当前浏览器不支持蓝牙功能，无法弹出搜索框！');
+        return;
+      }
+
+      try {
+        logStatus('正在拉起系统蓝牙权限选择框...');
+        // 为了方便调试先拉起所有蓝牙设备列表
         bleDevice = await navigator.bluetooth.requestDevice({
           acceptAllDevices: true,
-          optionalServices: ['0000fee7-0000-1000-8000-00805f9b34fb'] // 适配手环的蓝牙服务 UUID
+          optionalServices: ['0000fee7-0000-1000-8000-00805f9b34fb']
         });
+
+        logStatus('正在连接蓝牙设备 GATT 服务...');
         const server = await bleDevice.gatt.connect();
-        const service = await server.getPrimaryService('0000fee7-0000-1000-8000-00805f9b34fb');
-        bleCharacteristic = await service.getCharacteristic('0000fef1-0000-1000-8000-00805f9b34fb');
-        
-        updateStatus('✅ 蓝牙已连接：' + bleDevice.name);
+        logStatus('✅ 蓝牙连接成功：' + bleDevice.name);
+        alert('蓝牙设备连接成功：' + bleDevice.name);
+
+        try {
+          const service = await server.getPrimaryService('0000fee7-0000-1000-8000-00805f9b34fb');
+          bleCharacteristic = await service.getCharacteristic('0000fef1-0000-1000-8000-00805f9b34fb');
+        } catch(e) {
+          console.warn('未获取到自定义特征值，蓝牙通道建立受限:', e);
+        }
+
       } catch (err) {
-        updateStatus('❌ 蓝牙连接失败: ' + err.message);
+        alert('蓝牙连接取消或失败: ' + err.message);
+        logStatus('❌ 蓝牙连接失败: ' + err.message);
       }
     });
 
-    // 3. 计算路径并向手环发送蓝牙数据包
+    // 3. 计算路径并推送
+    document.getElementById('btnStartNav').addEventListener('click', calculateAndPushRoute);
+
     function calculateAndPushRoute() {
       const destName = document.getElementById('destInput').value.trim();
-      if (!destName || !currentLngLat) return;
+      if (!destName) {
+        alert('请输入目的地！');
+        return;
+      }
 
+      if (!currentLngLat) {
+        alert('尚未获取到当前 GPS 定位，将尝试使用地图中心点...');
+        currentLngLat = [map.getCenter().getLng(), map.getCenter().getLat()];
+      }
+
+      logStatus('正在计算前往【' + destName + '】的步行路线...');
       walking = new AMap.Walking({ map: map });
+      
       walking.search(currentLngLat, destName, function(status, result) {
         if (status === 'complete' && result.routes && result.routes.length > 0) {
           const route = result.routes[0];
-          
-          // 格式化步骤列表
           const stepsList = route.steps.map(s => ({
-            cleanInstruction: s.instruction.replace(/<[^>]+>/g, '') // 过滤 HTML 标签
+            cleanInstruction: s.instruction.replace(/<[^>]+>/g, '')
           }));
 
           const payload = {
@@ -112,26 +162,29 @@
             stepsList: stepsList
           };
 
+          alert('路线计算成功！共 ' + stepsList.length + ' 个步骤。');
           sendBlePayload(payload);
-          updateStatus('数据同步成功！已推送最新实时路线。');
+        } else {
+          alert('路线计算失败，请检查目的地名称！');
+          logStatus('❌ 路线计算失败');
         }
       });
     }
 
-    // 通过蓝牙写入特征值
     async function sendBlePayload(dataObj) {
-      if (!bleCharacteristic) return;
+      if (!bleCharacteristic) {
+        logStatus('⚠️ 蓝牙通道未就绪，但路线已在网页端生成。');
+        return;
+      }
       try {
         const jsonStr = JSON.stringify(dataObj);
         const encoder = new TextEncoder();
         await bleCharacteristic.writeValue(encoder.encode(jsonStr));
+        logStatus('🚀 实时路线数据已成功写入手环蓝牙！');
       } catch (err) {
-        console.error('蓝牙数据发送失败', err);
+        alert('蓝牙数据写入失败: ' + err.message);
       }
     }
-
-    document.getElementById('btnStartNav').addEventListener('click', calculateAndPushRoute);
-    window.onload = initMap;
   </script>
 </body>
 </html>
