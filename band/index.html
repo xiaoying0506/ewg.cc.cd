@@ -1,129 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>手环导航控制器 (H5版)</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f2f2f7;
-      margin: 0;
-      padding: 20px;
-    }
-    .card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
-    h2 { margin-top: 0; font-size: 20px; color: #1c1c1e; }
-    input {
-      width: 100%;
-      height: 44px;
-      padding: 0 12px;
-      border: 1px solid #d1d1d6;
-      border-radius: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-    }
-    button {
-      width: 100%;
-      height: 44px;
-      background-color: #007aff;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    button:active { background-color: #0056b3; }
-    .status { font-size: 14px; color: #8e8e93; margin-top: 10px; word-break: break-all; }
-  </style>
+  <meta charset="utf-8">
+  <title>手环导航控制端</title>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=5151a77302e2f3dfd81469a3ac4629ad&plugin=AMap.Walking,AMap.Geolocation"></script>
 </head>
 <body>
+  <div id="map-container" style="width: 100%; height: 300px;"></div>
+  <button id="connect-ble">1. 连接手环蓝牙</button>
+  <input id="dest-input" placeholder="输入目的地，如：五福堂" />
+  <button id="start-nav">2. 开始导航并实时推送</button>
 
-  <div class="card">
-    <h2>🗺️ 手环地图导航控制端</h2>
-    <input type="text" id="keyword" placeholder="请输入目的地 (例如: 景山公园)">
-    <button onclick="searchAndSend()">计算并推送路线</button>
-    <div class="status" id="statusLog">状态：等待操作...</div>
-  </div>
-
-  <script>
-    // 替换为你的高德地图 Web服务 API Key
-    const AMAP_KEY = '5151a77302e2f3dfd81469a3ac4629ad';
-
-    function log(msg) {
-      document.getElementById('statusLog').innerText = '状态：' + msg;
-    }
-
-    async function searchAndSend() {
-      const kw = document.getElementById('keyword').value.trim();
-      if (!kw) {
-        alert('请输入目的地');
-        return;
-      }
-
-      log('正在查询高德地图...');
-
-      try {
-        // 1. POI 搜索目的地
-        const poiRes = await fetch(`https://restapi.amap.com/v3/place/text?keywords=${encodeURIComponent(kw)}&key=${AMAP_KEY}`);
-        const poiData = await poiRes.json();
-
-        if (!poiData.pois || poiData.pois.length === 0) {
-          log('未搜到相关目的地');
-          return;
-        }
-
-        const poi = poiData.pois[0];
-        log(`已找到目的地：${poi.name}，正在规划路线...`);
-
-        // 2. 步行路线规划 (起点以北京故宫为例：116.397428,39.90923)
-        const origin = '116.397428,39.90923';
-        const routeRes = await fetch(`https://restapi.amap.com/v3/direction/walking?origin=${origin}&destination=${poi.location}&key=${AMAP_KEY}`);
-        const routeData = await routeRes.json();
-
-        if (routeData.status === '1' && routeData.route.paths.length > 0) {
-          const path = routeData.route.paths[0];
-
-          // 3. 清洗 HTML 标签，生成纯文本步骤列表
-          const steps = (path.steps || []).map(s => ({
-            cleanInstruction: s.instruction.replace(/<[^>]+>/g, ''),
-            distance: s.distance
-          }));
-
-          const payload = {
-            type: 'NAV_START',
-            destName: poi.name,
-            distanceText: path.distance > 1000 ? (path.distance/1000).toFixed(1) + '公里' : path.distance + '米',
-            estimatedTime: Math.ceil(parseInt(path.duration)/60) + '分钟',
-            stepsList: steps
-          };
-
-          log('路线规划完成！正在准备同步给手环...');
-          console.log('生成的 Payload:', payload);
-
-          // 4. 发送数据 (通过 Web Bluetooth 或服务器中转)
-          sendToBand(payload);
-        } else {
-          log('路线规划失败');
-        }
-      } catch (err) {
-        log('请求发生错误: ' + err.message);
-      }
-    }
-
-    // 通过网络服务器中转 / Web API 将 Payload 提供给手环
-    function sendToBand(payload) {
-      // 可以在这里把 payload POST 到你的服务器简易 API（例如 /api/sync_nav）
-      // 手环端只需从你的服务器地址同步数据，或者使用网页蓝牙进行穿透
-      log('数据同步成功！可以在手环上刷新查看了。');
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
