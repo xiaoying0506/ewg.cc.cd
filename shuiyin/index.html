@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身份证/证件纯本地水印工具 - 隐私安全</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #dcfce7;
+            color: #166534;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="color"],
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .range-group input[type="range"] {
+            flex: 1;
+        }
+
+        .range-group span {
+            font-size: 0.85rem;
+            color: #64748b;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .file-upload-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .file-upload-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+
+        .download-btn:hover {
+            background-color: #15803d;
+        }
+
+        .download-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            background-color: #f1f5f9;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>身份证/证件加水印工具</h1>
+        <span class="badge">🔒 100% 本地内存处理 · 绝对零数据上传</span>
+    </header>
+
+    <div class="main-layout">
+        <!-- 控制面板 -->
+        <div class="panel">
+            <div class="form-group">
+                <label for="imageInput" class="file-upload-btn">📁 选择图片文件</label>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label for="watermarkText">水印文字内容</label>
+                <input type="text" id="watermarkText" value="仅供办理XX业务使用 再次复印无效">
+            </div>
+
+            <div class="form-group">
+                <label for="textColor">文字颜色</label>
+                <input type="color" id="textColor" value="#000000">
+            </div>
+
+            <div class="form-group">
+                <label>透明度</label>
+                <div class="range-group">
+                    <input type="range" id="opacity" min="0.05" max="0.8" step="0.05" value="0.25">
+                    <span id="opacityValue">25%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>字体大小 (px)</label>
+                <div class="range-group">
+                    <input type="range" id="fontSize" min="12" max="60" step="1" value="24">
+                    <span id="fontSizeValue">24</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>旋转角度 (°)</label>
+                <div class="range-group">
+                    <input type="range" id="rotateAngle" min="-90" max="90" step="5" value="-25">
+                    <span id="rotateAngleValue">-25°</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>水印间距</label>
+                <div class="range-group">
+                    <input type="range" id="gap" min="50" max="300" step="10" value="120">
+                    <span id="gapValue">120</span>
+                </div>
+            </div>
+
+            <button id="downloadBtn" class="download-btn" disabled>💾 保存水印图片</button>
+        </div>
+
+        <!-- 预览区域 -->
+        <div class="panel preview-panel">
+            <div id="placeholder" class="preview-placeholder">
+                <p>点击左侧“选择图片文件”开始导入照片</p>
+                <p style="font-size: 0.8rem; margin-top: 8px;">支持 JPG、PNG 等常用图片格式</p>
+            </div>
+            <canvas id="watermarkCanvas" style="display: none;"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 获取 DOM 元素
+    const imageInput = document.getElementById('imageInput');
+    const watermarkText = document.getElementById('watermarkText');
+    const textColor = document.getElementById('textColor');
+    const opacity = document.getElementById('opacity');
+    const opacityValue = document.getElementById('opacityValue');
+    const fontSize = document.getElementById('fontSize');
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    const rotateAngle = document.getElementById('rotateAngle');
+    const rotateAngleValue = document.getElementById('rotateAngleValue');
+    const gap = document.getElementById('gap');
+    const gapValue = document.getElementById('gapValue');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const canvas = document.getElementById('watermarkCanvas');
+    const ctx = canvas.getContext('2d');
+    const placeholder = document.getElementById('placeholder');
+
+    let loadedImage = null;
+
+    // 绑定事件监听
+    imageInput.addEventListener('change', handleImageUpload);
+    watermarkText.addEventListener('input', renderWatermark);
+    textColor.addEventListener('input', renderWatermark);
+    
+    opacity.addEventListener('input', (e) => {
+        opacityValue.textContent = Math.round(e.target.value * 100) + '%';
+        renderWatermark();
+    });
+
+    fontSize.addEventListener('input', (e) => {
+        fontSizeValue.textContent = e.target.value;
+        renderWatermark();
+    });
+
+    rotateAngle.addEventListener('input', (e) => {
+        rotateAngleValue.textContent = e.target.value + '°';
+        renderWatermark();
+    });
+
+    gap.addEventListener('input', (e) => {
+        gapValue.textContent = e.target.value;
+        renderWatermark();
+    });
+
+    downloadBtn.addEventListener('click', downloadImage);
+
+    // 读取本地图片
+    function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                loadedImage = img;
+                canvas.width = img.width;
+                canvas.height = img.height;
+                placeholder.style.display = 'none';
+                canvas.style.display = 'block';
+                downloadBtn.disabled = false;
+                renderWatermark();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Canvas 绘制水印核心方法
+    function renderWatermark() {
+        if (!loadedImage) return;
+
+        // 1. 清空 Canvas 并绘制原始图片
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(loadedImage, 0, 0);
+
+        // 2. 提取控件配置
+        const text = watermarkText.value || '';
+        if (!text) return;
+
+        const fontPx = parseInt(fontSize.value, 10);
+        const color = textColor.value;
+        const alpha = parseFloat(opacity.value);
+        const angle = parseInt(rotateAngle.value, 10) * Math.PI / 180;
+        const step = parseInt(gap.value, 10);
+
+        // 3. 设置绘制状态
+        ctx.save();
+        ctx.font = `${fontPx}px -apple-system, sans-serif`;
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+
+        // 测量单个水印的宽高
+        const textMetrics = ctx.measureText(text);
+        const textWidth = textMetrics.width;
+        const textHeight = fontPx;
+
+        // 4. 网格化平铺绘制水印
+        // 旋转角度会导致边缘留白，扩大循环覆盖范围 (以对角线为标准)
+        const diagonal = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
+        const startX = -diagonal;
+        const endX = canvas.width + diagonal;
+        const startY = -diagonal;
+        const endY = canvas.height + diagonal;
+
+        const gapX = textWidth + step;
+        const gapY = textHeight + step;
+
+        for (let x = startX; x < endX; x += gapX) {
+            for (let y = startY; y < endY; y += gapY) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        ctx.restore();
+    }
+
+    // 下载结果图片
+    function downloadImage() {
+        if (!loadedImage) return;
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'watermarked-id-card.png';
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
