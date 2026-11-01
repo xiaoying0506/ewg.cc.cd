@@ -1,200 +1,779 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>极风游戏</title>
-    <style>
-        :root {
-            --primary-color: #ff6b6b;
-            --secondary-color: #ffa502;
-            --dark-color: #2f3542;
-            --light-color: #f1f2f6;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-        }
-
-        body {
-            background-color: #fafafa;
-            color: var(--dark-color);
-            line-height: 1.6;
-        }
-
-        /* 导航栏 */
-        header {
-            background: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        /* Hero 核心下载区 */
-        .hero {
-            margin-top: 70px;
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #ff9ff3 0%, #feca57 100%);
-            color: white;
-            text-align: center;
-        }
-
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .hero h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            opacity: 0.95;
-        }
-
-        /* 下载按钮样式 */
-        .download-box {
-            display: flex;
-            justify-content: center;
-            gap: 1px;
-            flex-wrap: wrap;
-        }
-
-        .btn-download {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px 35px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #ffffff;
-            background-color: var(--dark-color);
-            border-radius: 50px;
-            text-decoration: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
-        .btn-download:hover {
-            transform: translateY(-3px);
-            background-color: #000000;
-        }
-
-        .btn-download.secondary {
-            background-color: #ffffff;
-            color: var(--dark-color);
-        }
-
-        .btn-download.secondary:hover {
-            background-color: var(--light-color);
-        }
-
-        /* 特性介绍区 */
-        .features {
-            max-width: 1200px;
-            margin: 60px auto;
-            padding: 0 20px;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 40px;
-            color: var(--dark-color);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-        }
-
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .card h3 {
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
-
-        /* 页脚 */
-        footer {
-            background: var(--dark-color);
-            color: white;
-            text-align: center;
-            padding: 30px 20px;
-            margin-top: 60px;
-            font-size: 0.9rem;
-        }
-
-        footer p {
-            opacity: 0.7;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>多味厨房 · 让每一份食材物尽其用</title>
+<meta name="description" content="多味厨房是一款 Android 冰箱食材管理应用：分层管理、每日临期提醒、AI 智能菜谱、小票自动识别、米家智能冰箱互联、家庭共享与云端同步。🌿 绿色健康 · 绿色食品 · 可持续生活" />
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
 
-    <!-- 头部导航 -->
-    <header>
-        <div class="nav-container">
-            <a href="#" class="logo">极风游戏</a>
-            <nav>
-                <span style="color: #666; font-size: 0.9rem;">软件下载</span>
-            </nav>
+<!-- ══════════ 启动闪屏 ══════════ -->
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-icon">
+    <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M10 44H38V20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474V44Z"/>
+      <path d="M38 22.0437C38 21.8001 38 21.4346 38 20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474C10 21.4332 10 21.7975 10 22.0404L38 22.0437Z"/>
+      <path d="M4 22H44"/>
+      <path d="M21 4H27"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ══════════ 滚动进度条 ══════════ -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- ══════════ 顶部导航（Android.com 风格） ══════════ -->
+<header class="nav" id="topbar">
+  <div class="nav-inner">
+    <button class="nav-burger" id="menuBtn" aria-label="打开菜单">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+    </button>
+    <a class="logo" href="#top">
+      <span class="logo-tile"><svg viewBox="0 0 48 48" width="24" height="24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 44H38V20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474V44Z"/><path d="M38 22.0437C38 21.8001 38 21.4346 38 20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474C10 21.4332 10 21.7975 10 22.0404L38 22.0437Z"/><path d="M4 22H44"/><path d="M21 4H27"/></svg></span>
+      <span>多味厨房</span>
+    </a>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="#new">新功能</a>
+      <a href="#highlights">核心亮点</a>
+      <a href="#features">全部功能</a>
+      <a href="#screens">界面预览</a>
+      <a href="#changelog">更新日志</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+    <a class="btn btn-dark nav-cta" href="#download">
+      下载多味厨房
+      <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+    </a>
+  </div>
+</header>
+
+<!-- ══════════ 公告条 ══════════ -->
+<div class="banner" id="banner">
+  <p><b>多味厨房 v2.2 系列已经到来。</b>小票自动识别、米家冰箱互联（实验）全新上线。<a href="#new">立即了解</a></p>
+  <button class="banner-close" id="bannerClose" aria-label="关闭公告">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</div>
+
+<!-- ══════════ 移动端抽屉 ══════════ -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="菜单">
+  <div class="drawer-head">
+    <span class="logo-tile"><svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 44H38V20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474V44Z"/><path d="M38 22.0437C38 21.8001 38 21.4346 38 20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474C10 21.4332 10 21.7975 10 22.0404L38 22.0437Z"/><path d="M4 22H44"/><path d="M21 4H27"/></svg></span>
+    <b>多味厨房</b>
+  </div>
+  <nav class="drawer-nav">
+    <a href="#new">新功能</a>
+    <a href="#highlights">核心亮点</a>
+    <a href="#features">全部功能</a>
+    <a href="#screens">界面预览</a>
+    <a href="#family">家庭共享</a>
+    <a href="#changelog">更新日志</a>
+    <a href="#download">下载</a>
+    <a href="#faq">常见问题</a>
+  </nav>
+  <a class="btn btn-dark drawer-cta" href="#download">
+    下载多味厨房
+    <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+  </a>
+</aside>
+
+<main id="top">
+
+  <!-- ══════════ 黑色 Hero ══════════ -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="hero-eyebrow reveal">✦ 由 GLM-4-Flash 大模型驱动</p>
+      <h1 class="reveal" data-delay="1">介绍全新的<br />多味厨房 2.2。</h1>
+      <div class="hero-cta reveal" data-delay="2">
+        <a class="btn btn-light btn-lg" href="#download">
+          立即下载
+          <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5V12m0 0 3.5-3.5M10 12 6.5 8.5M4 16h12"/></svg>
+        </a>
+        <a class="btn btn-ghost btn-lg" href="#new">
+          查看新功能
+          <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+        </a>
+      </div>
+    </div>
+    <!-- 绿色展示面板（圆角叠压过渡） -->
+    <div class="hero-stage reveal" data-delay="2">
+      <div class="stage-clip">
+        <div class="stage-circle c1"></div>
+        <div class="stage-circle c2"></div>
+      </div>
+      <div class="phone-wrap" id="phoneTilt">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="p-status"><span class="p-time">9:00</span><span class="p-icons">
+              <svg width="14" height="11" viewBox="0 0 15 12" fill="currentColor"><path d="M1 8.5h2v3H1v-3zm3.5-2.5h2v5.5h-2V6zm3.5-3h2v8.5H8V3zm3.5-3h2v11.5h-2V0z"/></svg>
+              <svg width="14" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21l10-12.5A15.4 15.4 0 0 0 12 5 15.4 15.4 0 0 0 2 8.5L12 21z"/></svg>
+              <svg width="19" height="11" viewBox="0 0 26 13" fill="none"><rect x="1" y="1" width="20" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="3" y="3" width="13" height="7" rx="1.6" fill="currentColor"/><path d="M23 4.5v4" stroke="currentColor" stroke-linecap="round" opacity=".5"/></svg>
+            </span></div>
+              <div class="p-toprow">
+                <span class="p-gridbtn"><svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><circle cx="4" cy="4" r="1.8"/><circle cx="10" cy="4" r="1.8"/><circle cx="16" cy="4" r="1.8"/><circle cx="4" cy="10" r="1.8"/><circle cx="10" cy="10" r="1.8"/><circle cx="16" cy="10" r="1.8"/><circle cx="4" cy="16" r="1.8"/><circle cx="10" cy="16" r="1.8"/><circle cx="16" cy="16" r="1.8"/></svg></span>
+                <span class="p-search2">🔍 搜索食材</span>
+                <span class="p-sortbtn"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h12M13 4l3 3-3 3M16 13H4M7 10l-3 3 3 3"/></svg></span>
+              </div>
+              <div class="p-btnrow"><span class="p-pill2"><svg viewBox="0 0 48 48" width="11" height="11" fill="none" stroke="#378F18" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M42 8V24"/><path d="M6 24L6 40"/><path d="M42 24C42 14.0589 33.9411 6 24 6C18.9145 6 14.3216 8.10896 11.0481 11.5"/><path d="M6 24C6 33.9411 14.0589 42 24 42C28.8556 42 33.2622 40.0774 36.5 36.9519"/></svg> 刷新</span><span class="p-pill2 ai"><svg viewBox="0 0 48 48" width="11" height="11" fill="none" stroke="#1B5E20" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M24.0002 45C27.2208 45 32.7276 40.8 32.7276 24C32.7276 7.2 27.2208 3 24.0002 3C20.7797 3 15.2729 7.48302 15.2729 24C15.2729 40.517 20.7797 45 24.0002 45Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10515 35.0001C6.71545 37.8124 13.2479 40.4211 28.364 31.6211C43.48 22.8211 44.5057 15.8124 42.8954 13.0001C41.2851 10.1878 34.4981 7.72728 19.6367 16.3791C4.77521 25.0308 3.49489 32.1878 5.10515 35.0001Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10506 13.0001C3.4948 15.8124 4.52046 22.8211 19.6366 31.6211C34.7527 40.4211 41.285 37.8124 42.8953 35.0001C44.5056 32.1878 43.2253 25.0308 28.3638 16.3791C13.5024 7.72728 6.71537 10.1878 5.10506 13.0001Z"/></svg> AI 推荐</span></div>
+              <div class="p-warn">
+                <b><svg viewBox="0 0 48 48" width="11" height="11" fill="none" stroke="#D32F2F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 38V18C10 10.268 16.268 4 24 4C31.732 4 38 10.268 38 18V38M4 38H44"/><path d="M24 44C26.7614 44 29 41.7614 29 39V38H19V39C19 41.7614 21.2386 44 24 44Z"/></svg> 食材预警（2 个已过期，1 个即将过期）</b>
+                <div class="p-warchips">
+                  <span class="pw-chip bad"><i>🥩</i><div>猪前排<em>已过期</em></div></span>
+                  <span class="pw-chip bad"><i>🍖</i><div>猪蹄×2<em>已过期</em></div></span>
+                  <span class="pw-chip soon"><i>🥛</i><div>鲜牛奶<em>即将过期</em></div></span>
+                </div>
+              </div>
+              <div class="p-mijia"><span><img src="assets/ui/fridge.png" class="ic-b" width="12" height="12" alt="">未连接米家冰箱 (设定: --℃)</span><em>速冷: 关</em></div>
+              <div class="p-zone-t">💡 冷藏室 <span>(Refrigeration)</span></div>
+              <div class="p-layer"><b>第 1 层</b>
+                <div class="p-lchips">
+                  <span class="pw-chip bad sm"><i>🥩</i><div>猪前排<em>已过期</em></div></span>
+                  <span class="pw-chip ok sm"><i>🍗</i><div>鸡里脊<em>保质期内</em></div></span>
+                </div>
+              </div>
+              <div class="p-layer"><b>第 2 层</b><i class="p-empty">（空）</i></div>
+              <div class="p-layer"><b>第 3 层</b><i class="p-empty">（空）</i></div>
+              <div class="p-sidefabs"><span class="p-sfab"><img src="assets/ui/scan.png" width="17" height="17" alt=""></span><span class="p-fab2">＋</span></div>
+              <div class="p-navbar">
+                <span class="p-nav-item active"><i><img src="assets/ui/fridge.png" class="navic" alt=""></i>冰箱</span>
+                <span class="p-nav-item"><i><img src="assets/ui/more.png" class="navic" alt=""></i>其他</span>
+                <span class="p-nav-item"><i><img src="assets/ui/category.png" class="navic" alt=""></i>分类</span>
+                <span class="p-nav-item"><i>📖</i>食谱</span>
+              </div>
+              <div class="p-hole"></div>
+          </div>
         </div>
-    </header>
+        <div class="stage-card s1"><b><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#D93025" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 38V18C10 10.268 16.268 4 24 4C31.732 4 38 10.268 38 18V38M4 38H44"/><path d="M24 44C26.7614 44 29 41.7614 29 39V38H19V39C19 41.7614 21.2386 44 24 44Z"/></svg> 食材预警</b><i>7 个已过期，1 个即将过期，快清理冰箱吧</i></div>
+        <div class="stage-card s2"><b><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#2E7D32" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M24.0002 45C27.2208 45 32.7276 40.8 32.7276 24C32.7276 7.2 27.2208 3 24.0002 3C20.7797 3 15.2729 7.48302 15.2729 24C15.2729 40.517 20.7797 45 24.0002 45Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10515 35.0001C6.71545 37.8124 13.2479 40.4211 28.364 31.6211C43.48 22.8211 44.5057 15.8124 42.8954 13.0001C41.2851 10.1878 34.4981 7.72728 19.6367 16.3791C4.77521 25.0308 3.49489 32.1878 5.10515 35.0001Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10506 13.0001C3.4948 15.8124 4.52046 22.8211 19.6366 31.6211C34.7527 40.4211 41.285 37.8124 42.8953 35.0001C44.5056 32.1878 43.2253 25.0308 28.3638 16.3791C13.5024 7.72728 6.71537 10.1878 5.10506 13.0001Z"/></svg> AI 推荐</b><i>牛腩今天到期，试试「番茄炖牛腩」</i></div>
+        <div class="stage-card s3"><b><svg viewBox="0 0 48 48" width="14" height="14" fill="none" stroke="#378F18" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="8" width="30" height="36" rx="2"/><path d="M18 4V10"/><path d="M30 4V10"/><path d="M16 19L32 19"/><path d="M16 27L28 27"/><path d="M16 35H24"/></svg> 小票识别完成</b><i>已确认导入 6 项食材</i></div>
+      </div>
+    </div>
+  </section>
 
-    <!-- 主下载视觉区 -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>多味厨房 (DuoweiKitchen)</h1>
-            <p>管理你的冰箱食材，轻松掌握食材状态！</p>
-           
-                
-                <!-- Android/移动端下载链接 -->
-                <a href="https://iyhatyweltydvffiwtef.supabase.co/storage/v1/object/public/apks/app-debug(2.1.7).apk" class="btn-download secondary">
-                     下载 Android 版
-                </a>
+  <!-- ══════════ 新功能（浅蓝卡片） ══════════ -->
+  <section class="section" id="new">
+    <div class="container">
+      <h2 class="reveal">介绍多味厨房的新功能。</h2>
+      <div class="center-cta reveal" data-delay="1">
+        <a class="btn btn-dark" href="#features">
+          查看全部功能
+          <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+        </a>
+      </div>
+      <div class="cards-3">
+        <article class="card card-blue reveal" data-delay="0">
+          <p class="card-label">小票自动识别</p>
+          <h3>拍一张小票，食材<br />全部自动入库。</h3>
+          <a class="btn btn-outline" href="#highlight-receipt">
+            看看怎么做到的
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </a>
+          <div class="card-visual">
+            <div class="v-receipt">
+              <div class="vr-head">🌿 新鲜时刻超市</div>
+              <div class="vr-item"><span>🍓 草莓</span><em>¥12.9</em></div>
+              <div class="vr-item"><span>🥛 鲜牛奶</span><em>¥8.5</em></div>
+              <div class="vr-item"><span>🥩 牛腩</span><em>¥39.8</em></div>
+              <div class="vr-done">✓ AI 已识别 6 项 · 勾选后批量入库</div>
+            </div>
+          </div>
+        </article>
+        <article class="card card-blue reveal" data-delay="1">
+          <p class="card-label">AI 智能菜谱</p>
+          <h3>今晚吃什么？<br />AI 看一眼你的冰箱。</h3>
+          <a class="btn btn-outline" href="#highlight-ai">
+            了解 AI 菜谱
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </a>
+          <div class="card-visual">
+            <div class="v-chat">
+              <div class="vc-user">冰箱里有番茄、牛腩和土豆…今晚吃什么？</div>
+              <div class="vc-ai"><span class="vc-ava">🤖</span>推荐「番茄炖牛腩」——牛腩今天到期，正好优先消耗！<span class="vc-caret"></span></div>
+            </div>
+          </div>
+        </article>
+        <article class="card card-blue reveal" data-delay="2">
+          <p class="card-label">米家冰箱互联 <i class="lab-badge">实验</i></p>
+          <h3>冰箱温度，<br />在手机上随手调。</h3>
+          <a class="btn btn-outline" href="#highlight-mijia">
+            查看米家功能
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </a>
+          <div class="card-visual">
+            <div class="v-dial">
+              <svg viewBox="0 0 120 120"><circle class="vd-bg" cx="60" cy="60" r="52"/><circle class="vd-fg" cx="60" cy="60" r="52"/></svg>
+              <div class="vd-center"><b>4℃</b><i>冷藏设定</i></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 数据带 ══════════ -->
+  <section class="stats">
+    <div class="container stats-grid">
+      <div class="stat reveal" data-delay="0"><b><span data-count="6">0</span></b><i>级搁架自由定义</i></div>
+      <div class="stat reveal" data-delay="1"><b><span data-count="3">0</span></b><i>种首页视图切换</i></div>
+      <div class="stat reveal" data-delay="2"><b><span data-count="2">0</span></b><i>种界面语言</i></div>
+      <div class="stat reveal" data-delay="3"><b><span data-count="36">0</span></b><i>个版本持续迭代</i></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 跑马灯标签 ══════════ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>#保质期管理</span><span>#速冷速冻</span><span>#多味贴士</span><span>#新闻中心</span><span>#历史删除日志</span><span>#食材占比仪表盘</span><span>#花费明细</span><span>#预览体验计划</span><span>#GLM-4-Flash</span><span>#米家智能冰箱</span><span>#一物一码</span><span>#家庭共享</span>
+      <span>#保质期管理</span><span>#速冷速冻</span><span>#多味贴士</span><span>#新闻中心</span><span>#历史删除日志</span><span>#食材占比仪表盘</span><span>#花费明细</span><span>#预览体验计划</span><span>#GLM-4-Flash</span><span>#米家智能冰箱</span><span>#一物一码</span><span>#家庭共享</span>
+    </div>
+  </div>
+
+  <!-- ══════════ 核心亮点（交互演示） ══════════ -->
+  <section class="section" id="highlights">
+    <div class="container">
+      <h2 class="reveal">核心亮点，<br />都为真实的下厨场景设计。</h2>
+
+      <!-- A. 分层管理 -->
+      <div class="split reveal" id="highlight-fridge">
+        <div class="split-copy">
+          <h3>🧊 冰箱分层 · 食材各就各位</h3>
+          <p>按你家冰箱的真实结构，自定义冷藏室、冷冻室的搁架与门架层数，还能添加抽屉、橱柜等「其他位置」存放容器。三种首页视图随心切换：明细列表信息最全，缩略图网格一眼看清，3D 冰箱视图沉浸感拉满。</p>
+          <div class="seg" id="fridgeSeg" role="tablist">
+            <button class="seg-btn active" data-view="cooling" role="tab" aria-selected="true">💡 冷藏室</button>
+            <button class="seg-btn" data-view="freezer" role="tab" aria-selected="false">❄️ 冷冻室</button>
+          </div>
+          <ul class="dot-list">
+            <li>搁架 / 门架层数自由定义，冷藏通常 2~8℃、冷冻 -15~-24℃</li>
+            <li>数量按克自动扣减消耗，保质期、入库时间、价格全记录</li>
+            <li>📷 拍照记录食材，扫描绑定一物一码二维码，扫码即可查询</li>
+          </ul>
         </div>
-    </section>
+        <div class="split-visual">
+          <div class="fridge-demo" id="fridgeDemo">
+            <div class="fridge-cab">
+              <div class="fridge-door-bar"><span>💡 冷藏室 · 第 1-3 层</span><b class="fd-temp" id="fdTemp">4℃</b></div>
+              <div class="shelf" data-zone="cooling">
+                <div class="shelf-item pop"><span>🥬</span>生菜<i class="tag ok">5 天</i></div>
+                <div class="shelf-item pop"><span>🍅</span>番茄<i class="tag ok">6 天</i></div>
+                <div class="shelf-item pop"><span>🥛</span>鲜牛奶<i class="tag warn">1 天</i></div>
+              </div>
+              <div class="shelf" data-zone="cooling">
+                <div class="shelf-item pop"><span>🍓</span>草莓<i class="tag warn">2 天</i></div>
+                <div class="shelf-item pop"><span>🧀</span>芝士片<i class="tag ok">12 天</i></div>
+              </div>
+              <div class="shelf" data-zone="cooling">
+                <div class="shelf-item pop"><span>🥩</span>牛腩<i class="tag danger">今天</i></div>
+                <div class="shelf-item pop"><span>🥚</span>鸡蛋<i class="tag ok">14 天</i></div>
+                <div class="shelf-item pop"><span>🥕</span>胡萝卜<i class="tag ok">9 天</i></div>
+              </div>
+              <div class="shelf hidden" data-zone="freezer">
+                <div class="shelf-item pop"><span>🥟</span>速冻水饺<i class="tag ok">60 天</i></div>
+                <div class="shelf-item pop"><span>🍦</span>冰淇淋<i class="tag ok">30 天</i></div>
+                <div class="shelf-item pop"><span>🥩</span>冻牛排<i class="tag ok">45 天</i></div>
+              </div>
+              <div class="shelf hidden" data-zone="freezer">
+                <div class="shelf-item pop"><span>🫐</span>冷冻蓝莓<i class="tag ok">90 天</i></div>
+                <div class="shelf-item pop"><span>🧊</span>冰块<i class="tag ok">—</i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              
+      <!-- B. AI 菜谱 -->
+      <div class="split reverse reveal" id="highlight-ai">
+        <div class="split-copy">
+          <h3>🤖 AI 智能菜谱 · 缺啥吃啥</h3>
+          <p>由 GLM-4-Flash 大模型流式生成，几秒内看到第一个字。可以根据冰箱现有食材推荐「缺啥吃啥」，也可以按菜名直接生成；生成的菜谱会自动存入菜谱库，还能通过对话继续修改——改过的版本会一直记住。</p>
+          <ul class="dot-list">
+            <li>流式输出，边生成边显示（首字约 1-3 秒）</li>
+            <li>菜谱自动入库，与本机菜谱合并成一个食谱页</li>
+            <li>支持对话式修改菜谱，修改记录持久保存</li>
+          </ul>
+        </div>
+        <div class="split-visual">
+          <div class="ai-demo">
+            <div class="ai-chat">
+              <div class="bubble user">冰箱里还有番茄、牛腩和土豆…今晚吃什么？🤔</div>
+              <div class="bubble ai"><span class="ai-ava"><svg viewBox="0 0 48 48" width="17" height="17" fill="none" stroke="#2E7D32" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M24.0002 45C27.2208 45 32.7276 40.8 32.7276 24C32.7276 7.2 27.2208 3 24.0002 3C20.7797 3 15.2729 7.48302 15.2729 24C15.2729 40.517 20.7797 45 24.0002 45Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10515 35.0001C6.71545 37.8124 13.2479 40.4211 28.364 31.6211C43.48 22.8211 44.5057 15.8124 42.8954 13.0001C41.2851 10.1878 34.4981 7.72728 19.6367 16.3791C4.77521 25.0308 3.49489 32.1878 5.10515 35.0001Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10506 13.0001C3.4948 15.8124 4.52046 22.8211 19.6366 31.6211C34.7527 40.4211 41.285 37.8124 42.8953 35.0001C44.5056 32.1878 43.2253 25.0308 28.3638 16.3791C13.5024 7.72728 6.71537 10.1878 5.10506 13.0001Z"/></svg></span><span id="aiText" class="typing"></span><span class="caret"></span></div>
+            </div>
+            <div class="ai-chips"><span class="p-chip">🍅 番茄 ×3</span><span class="p-chip">🥩 牛腩 500g</span><span class="p-chip">🥔 土豆 ×2</span></div>
+          </div>
+        </div>
+      </div>
 
+      <!-- C. 小票识别 -->
+      <div class="split reveal" id="highlight-receipt">
+        <div class="split-copy">
+          <h3>🧾 小票识别 · 拍一下，全入库</h3>
+          <p>买菜回家懒得逐个录入？拍一张购物小票，AI 自动识别每种食材的名称、克数和价格，勾选确认后批量入库。入库后可以在食材详情页补全保质期。</p>
+          <ul class="dot-list">
+            <li>AI 提取品名 / 克数 / 价格，勾选确认后导入</li>
+            <li>🏷️ 食材类别自动识别，入库更省心</li>
+            <li>配合一物一码，扫码即可查询食材详情</li>
+          </ul>
+          <button class="btn btn-outline" id="replayScan">
+            重播识别过程
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </button>
+        </div>
+        <div class="split-visual">
+          <div class="receipt" id="receiptDemo">
+            <div class="receipt-head">🌿 新鲜时刻超市</div>
+            <div class="receipt-meta">2026-11-01 16:21 · 收银员 08</div>
+            <div class="scanline"></div>
+            <div class="r-item" style="--i:0"><span>🍓 草莓</span><em>250g</em><em>¥12.9</em></div>
+            <div class="r-item" style="--i:1"><span>🥛 鲜牛奶</span><em>980ml</em><em>¥8.5</em></div>
+            <div class="r-item" style="--i:2"><span>🥩 牛腩</span><em>500g</em><em>¥39.8</em></div>
+            <div class="r-item" style="--i:3"><span>🍅 番茄</span><em>600g</em><em>¥6.7</em></div>
+            <div class="r-item" style="--i:4"><span>🥬 生菜</span><em>300g</em><em>¥3.2</em></div>
+            <div class="r-item" style="--i:5"><span>🧀 芝士片</span><em>120g</em><em>¥9.9</em></div>
+            <div class="r-total">合计 <b>¥81.00</b></div>
+            <div class="r-done"><span class="done-ico">✓</span> AI 已识别 6 项食材 · 勾选确认后批量入库</div>
+          </div>
+        </div>
+      </div>
 
-    <!-- 页脚版权 -->
-    <footer>
-        <p>&copy; 2026 极风游戏 保留所有权利</p>
-           </footer>
+      <!-- D. 米家互联 -->
+      <div class="split reverse reveal" id="highlight-mijia">
+        <div class="split-copy">
+          <h3>🔗 米家智能冰箱 · 温度随手调</h3>
+          <p>通过小米官方网页安全登录（支持图形验证码、两步验证与短信扫码）同步米家设备列表，即可在应用内远程设定冷藏、冷冻温度，开关速冷、速冻模式。回家前调好温度，食材即刻进入最佳状态。</p>
+          <ul class="dot-list">
+            <li>冷藏通常 2~8℃、冷冻 -15~-24℃，随手设定</li>
+            <li>速冷 / 速冻模式一键开关（不同型号支持的指令略有差异）</li>
+            <li>实验功能，将持续优化适配更多型号</li>
+          </ul>
+        </div>
+        <div class="split-visual">
+          <div class="mijia-demo">
+            <div class="dial-card">
+              <div class="dial" id="dial">
+                <svg viewBox="0 0 120 120">
+                  <circle class="dial-bg" cx="60" cy="60" r="52"/>
+                  <circle class="dial-fg" id="dialFg" cx="60" cy="60" r="52"/>
+                </svg>
+                <div class="dial-center"><b id="dialTemp">4℃</b><i id="dialZone">冷藏室设定</i></div>
+              </div>
+              <div class="seg sm" id="dialSeg">
+                <button class="seg-btn active" data-temp="4" data-zone="冷藏室设定" data-cool="1">💡 冷藏</button>
+                <button class="seg-btn" data-temp="-18" data-zone="冷冻室设定" data-cool="0">❄️ 冷冻</button>
+              </div>
+              <div class="switch-row"><span>💨 速冷模式</span><button class="m3-switch" id="swCool" aria-label="切换速冷模式"><span class="knob"></span></button></div>
+              <div class="switch-row"><span>❄️ 速冻模式</span><button class="m3-switch" id="swFreeze" aria-label="切换速冻模式"><span class="knob"></span></button></div>
+            </div>
+            <div class="mijia-note">实验功能 · 需在「设置 → 智能硬件设备」中登录小米账号</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- ══════════ AI 板块 ══════════ -->
+  <section class="section" id="ai">
+    <div class="container">
+      <h2 class="reveal">多味厨房 <span class="green-text">里的智能。</span></h2>
+      <div class="center-cta reveal" data-delay="1">
+        <a class="btn btn-dark" href="#highlight-ai">
+          体验智能的力量
+          <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+        </a>
+      </div>
+      <div class="cards-3">
+        <article class="card card-gray reveal" data-delay="0">
+          <p class="card-label">GLM-4-Flash 驱动</p>
+          <h3>你的 AI 菜谱助手。</h3>
+          <div class="card-visual tall">
+            <div class="v-mini-phone vr">
+              <div class="vr-title">🥘 食谱库 (Recipes)</div>
+              <div class="vr-sub">共 25 道菜 · 当前可立即烹饪 0 道</div>
+              <div class="vr-chips"><span class="on">全部</span><span>家常菜</span><span>硬菜</span><span>素菜</span></div>
+              <div class="vr-card">
+                <div class="vr-photo">🍅🍳</div>
+                <div class="vr-line1"><b>番茄炒蛋</b><span class="vr-badge">缺 3 种</span></div>
+                <div class="vr-meta">⏱ 10分钟 · 难度 简单 · 2人份</div>
+                <div class="vr-miss">🛒 还缺：番茄、鸡蛋、小葱</div>
+              </div>
+              <div class="vr-card">
+                <div class="vr-photo">🥬🥩</div>
+                <div class="vr-line1"><b>青椒肉丝</b><span class="vr-badge">缺 2 种</span></div>
+                <div class="vr-meta">⏱ 15分钟 · 难度 简单 · 2人份</div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article class="card card-gray reveal" data-delay="1">
+          <p class="card-label">智能识别</p>
+          <h3>小票、类别、二维码，一眼识别。</h3>
+          <div class="card-visual tall">
+            <div class="v-tags">
+              <span class="v-tag">🧾 小票 → 6 项食材</span>
+              <span class="v-tag">🏷️ 自动识别类别：水果</span>
+              <span class="v-tag">📷 一物一码 · 扫码查询</span>
+            </div>
+          </div>
+        </article>
+        <article class="card card-gray reveal" data-delay="2">
+          <p class="card-label">贴心提醒</p>
+          <h3>每天 9:00，临期食材提前知道。</h3>
+          <div class="card-visual tall">
+            <div class="v-notif">
+              <div class="vn-app"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="6.5" y="7.5" width="11" height="11" rx="1.6"/><path d="M8.2 7.5C8.2 4.8 9.9 3.2 12 3.2s3.8 1.6 3.8 4.3"/><path d="M4 9.5h16"/></svg>多味厨房 · 食材过期提醒</div>
+              <b>食材即将过期</b>
+              <i>冰箱里有 3 项食材即将过期（共 42 项），快看看该吃什么吧</i>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 全部功能 ══════════ -->
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="reveal">充分利用多味厨房。</h2>
+      <div class="center-cta reveal" data-delay="1">
+        <a class="btn btn-dark" href="#download">
+          免费下载
+          <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+        </a>
+      </div>
+      <div class="feature-grid">
+        <article class="fcard reveal" data-delay="0"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.9143L24 19L44 11.9143L24 5L4 11.9143Z"/><path d="M4 20L24 27L44 20"/><path d="M4 28L24 35L44 28"/><path d="M4 36L24 43L44 36"/></svg></span><span class="f-badge">新功能</span></div><h4>冰箱分层管理</h4><p>冷藏 / 冷冻（含门架）分层自定义，还可添加抽屉、橱柜等「其他位置」存放容器。</p></article>
+        <article class="fcard reveal" data-delay="1"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M24.0002 45C27.2208 45 32.7276 40.8 32.7276 24C32.7276 7.2 27.2208 3 24.0002 3C20.7797 3 15.2729 7.48302 15.2729 24C15.2729 40.517 20.7797 45 24.0002 45Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10515 35.0001C6.71545 37.8124 13.2479 40.4211 28.364 31.6211C43.48 22.8211 44.5057 15.8124 42.8954 13.0001C41.2851 10.1878 34.4981 7.72728 19.6367 16.3791C4.77521 25.0308 3.49489 32.1878 5.10515 35.0001Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5.10506 13.0001C3.4948 15.8124 4.52046 22.8211 19.6366 31.6211C34.7527 40.4211 41.285 37.8124 42.8953 35.0001C44.5056 32.1878 43.2253 25.0308 28.3638 16.3791C13.5024 7.72728 6.71537 10.1878 5.10506 13.0001Z"/></svg></span></div><h4>AI 智能菜谱</h4><p>GLM-4-Flash 流式生成，菜谱自动入库，支持对话式修改并记住你的口味。</p></article>
+        <article class="fcard reveal" data-delay="2"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="8" width="30" height="36" rx="2"/><path d="M18 4V10"/><path d="M30 4V10"/><path d="M16 19L32 19"/><path d="M16 27L28 27"/><path d="M16 35H24"/></svg></span><span class="f-badge">新功能</span></div><h4>小票自动识别</h4><p>拍摄购物小票，AI 提取品名、克数与价格，勾选确认后批量入库。</p></article>
+        <article class="fcard reveal" data-delay="3"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 38V18C10 10.268 16.268 4 24 4C31.732 4 38 10.268 38 18V38M4 38H44"/><path d="M24 44C26.7614 44 29 41.7614 29 39V38H19V39C19 41.7614 21.2386 44 24 44Z"/></svg></span></div><h4>临期智能提醒</h4><p>每天 9:00 推送即将过期的食材，仅在有临期时提醒，避免重复打扰。</p></article>
+        <article class="fcard reveal" data-delay="4"><div class="f-top"><span class="f-ico alt">🔗</span><span class="f-badge">实验</span></div><h4>米家冰箱互联</h4><p>小米官方网页安全登录，远程设定冷藏 / 冷冻温度与速冷、速冻模式。</p></article>
+        <article class="fcard reveal" data-delay="5"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M35 16C37.7614 16 40 13.7614 40 11C40 8.23858 37.7614 6 35 6C32.2386 6 30 8.23858 30 11C30 13.7614 32.2386 16 35 16Z"/><path d="M13 29C15.7614 29 18 26.7614 18 24C18 21.2386 15.7614 19 13 19C10.2386 19 8 21.2386 8 24C8 26.7614 10.2386 29 13 29Z"/><path d="M30.0004 13.5745L17.3393 21.2454"/><path d="M17.3385 26.5639L30.6789 34.4469"/><path d="M35 32C37.7614 32 40 34.2386 40 37C40 39.7614 37.7614 42 35 42C32.2386 42 30 39.7614 30 37C30 34.2386 32.2386 32 35 32Z"/></svg></span></div><h4>家庭共享</h4><p>多味共享码（邀请码）邀请家人，权限管理，多厨房随心切换。</p></article>
+        <article class="fcard reveal" data-delay="0"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M42 8V24"/><path d="M6 24L6 40"/><path d="M42 24C42 14.0589 33.9411 6 24 6C18.9145 6 14.3216 8.10896 11.0481 11.5"/><path d="M6 24C6 33.9411 14.0589 42 24 42C28.8556 42 33.2622 40.0774 36.5 36.9519"/></svg></span></div><h4>云端实时同步</h4><p>登录 Supabase 账号后多设备数据实时一致，换机不丢一盒食材。</p></article>
+        <article class="fcard reveal" data-delay="1"><div class="f-top"><span class="f-ico alt">📊</span></div><h4>花费统计</h4><p>库存总花费、本月入库、临期风险金额与分类花费明细，一目了然。</p></article>
+        <article class="fcard reveal" data-delay="2"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"><rect x="6" y="6" width="36" height="36" rx="3"/><rect x="13" y="13" width="8" height="8"/><rect x="27" y="13" width="8" height="8"/><rect x="13" y="27" width="8" height="8"/><rect x="27" y="27" width="8" height="8"/></svg></span></div><h4>3D 冰箱视图</h4><p>沉浸式 3D 冰箱造型分层查看食材，配合明细列表、缩略图网格三种首页视图。</p></article>
+        <article class="fcard reveal" data-delay="3"><div class="f-top"><span class="f-ico"><img src="assets/ui/scan.png" width="26" height="26" alt=""></span></div><h4>一物一码</h4><p>拍照记录食材、扫描绑定专属二维码，扫码即可查询食材详情。</p></article>
+        <article class="fcard reveal" data-delay="4"><div class="f-top"><span class="f-ico alt">📈</span></div><h4>食材占比仪表盘</h4><p>实时食材占比与历史删除日志，库存变化随时回看。</p></article>
+        <article class="fcard reveal" data-delay="5"><div class="f-top"><span class="f-ico"><svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M24 44.0002C35.0457 44.0002 44 35.0459 44 24.0002C44 12.9545 35.0457 4.00024 24 4.00024C12.9543 4.00024 4 12.9545 4 24.0002C4 35.0459 12.9543 44.0002 24 44.0002Z"/><path d="M6 30.9856C8.63192 32.041 10.5266 32.041 11.6839 30.9856C13.4199 29.4025 11.9219 24.5978 14.3532 23.2727C16.7844 21.9476 20.4886 27.8214 23.9508 25.8887C27.4129 23.9559 23.6246 18.8023 26.0272 16.713C28.4298 14.6237 31.554 16.98 32.1001 13.4865C32.6462 9.99304 29.5521 11.5082 28.9584 8.20693C28.5625 6.00611 28.5625 4.84884 28.9584 4.73511"/><path d="M29.0209 43.3505C27.1468 41.4325 26.4721 39.6497 26.9969 38.0019C27.7841 35.5303 29.0826 35.6764 29.6488 34.1482C30.2149 32.6199 28.6156 30.4433 32.1643 28.5826C34.5301 27.3421 37.783 28.7794 41.9228 32.8944"/></svg></span></div><h4>深色模式 & 双语</h4><p>夜间护眼深色主题，简体中文 / English 随系统切换，资讯与贴士常更新。</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 充分利用（拱形视觉卡） ══════════ -->
+  <section class="section" id="family">
+    <div class="container">
+      <h2 class="reveal">让全家人，<br />共用同一台冰箱。</h2>
+      <div class="cards-3 arch-cards">
+        <article class="card card-gray arch reveal" data-delay="0">
+          <div class="card-visual arch-v">
+            <div class="duo-tile"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M35 16C37.7614 16 40 13.7614 40 11C40 8.23858 37.7614 6 35 6C32.2386 6 30 8.23858 30 11C30 13.7614 32.2386 16 35 16Z"/><path d="M13 29C15.7614 29 18 26.7614 18 24C18 21.2386 15.7614 19 13 19C10.2386 19 8 21.2386 8 24C8 26.7614 10.2386 29 13 29Z"/><path d="M30.0004 13.5745L17.3393 21.2454"/><path d="M17.3385 26.5639L30.6789 34.4469"/><path d="M35 32C37.7614 32 40 34.2386 40 37C40 39.7614 37.7614 42 35 42C32.2386 42 30 39.7614 30 37C30 34.2386 32.2386 32 35 32Z"/></svg></div>
+            <div class="avatars"><span>🧑</span><span>👩</span><span>👶</span><span class="more">+2</span></div>
+          </div>
+          <h3>家庭共享</h3>
+          <p>注册时输入多味共享码即可加入同一间厨房；留空则自动新建。创建者可随时重新生成邀请码。</p>
+          <a class="btn btn-outline" href="#faq">了解共享
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </a>
+        </article>
+        <article class="card card-gray arch reveal" data-delay="1">
+          <div class="card-visual arch-v">
+            <div class="duo-tile"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M42 8V24"/><path d="M6 24L6 40"/><path d="M42 24C42 14.0589 33.9411 6 24 6C18.9145 6 14.3216 8.10896 11.0481 11.5"/><path d="M6 24C6 33.9411 14.0589 42 24 42C28.8556 42 33.2622 40.0774 36.5 36.9519"/></svg></div>
+            <div class="sync-demo">
+              <span class="sync-node">📱 手机</span>
+              <span class="sync-line"><span class="sync-pulse"></span></span>
+              <span class="sync-node cloud">☁️ 云端</span>
+              <span class="sync-line"><span class="sync-pulse d2"></span></span>
+              <span class="sync-node">📺 平板</span>
+            </div>
+          </div>
+          <h3>云端实时同步</h3>
+          <p>登录 Supabase 账号，多设备数据实时一致，历史删除日志可随时回看。</p>
+          <a class="btn btn-outline" href="#faq">了解同步
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </a>
+        </article>
+        <article class="card card-gray arch reveal" data-delay="2">
+          <div class="card-visual arch-v">
+            <div class="widget">
+              <div class="w-title"><img src="assets/ui/fridge.png" class="ic-b" width="14" height="14" alt=""> 我的冰箱</div>
+              <div class="w-body">
+                <div class="w-cell"><b>42</b><i>库存总数</i></div>
+                <div class="w-divider"></div>
+                <div class="w-cell"><b class="warn-text">3</b><i>即将过期</i></div>
+              </div>
+              <div class="w-foot">⟳ 已同步</div>
+            </div>
+          </div>
+          <h3>桌面小部件</h3>
+          <p>库存总数与即将过期数量放桌面，数据变化自动刷新，不用打开 App。</p>
+          <a class="btn btn-outline" href="#download">添加小部件
+            <svg class="arr" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h13M11 4.5 16.5 10 11 15.5"/></svg>
+          </a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 界面预览 ══════════ -->
+  <section class="section" id="screens">
+    <div class="container">
+      <h2 class="reveal">看看多味厨房的界面。</h2>
+      <div class="carousel-wrap reveal" data-delay="1">
+        <button class="car-btn prev" id="carPrev" aria-label="上一屏">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4 7 9.5l5.5 5.5"/></svg>
+        </button>
+        <div class="carousel" id="carousel">
+          <div class="shot"><div class="shot-title">首页 · 冰箱明细</div>
+            <div class="mini">
+              <div class="m-blue-t">💡 冷藏室 (Refrigeration)</div>
+              <div class="m-sec">冷藏室搁架</div>
+              <div class="m-layer"><b>第 1 层</b><span class="m-chip bad">🥩 猪前排 · 已过期</span><span class="m-chip ok">🍗 鸡里脊</span></div>
+              <div class="m-layer"><b>第 2 层</b><span class="m-chip ok">🥩 黑猪棒骨 550克</span></div>
+              <div class="m-layer"><b>第 3 层</b><i>（空）</i></div>
+              <div class="m-sec">冷藏室门壁搁架</div>
+              <div class="m-layer"><b>第 1 层</b><span class="m-chip soon">🥛 鲜牛奶 · 即将过期</span></div>
+              <div class="m-layer"><b>第 2 层</b><i>（空）</i></div>
+            </div>
+          </div>
+          <div class="shot"><div class="shot-title">分类 · 食材网格</div>
+            <div class="mini">
+              <div class="m-cat-t">🥩 肉蛋 · 25 件</div>
+              <div class="m-catgrid">
+                <div class="mc bad"><i>🥩</i>猪前排</div>
+                <div class="mc ok"><i>🍖</i>黑猪后腿肉 350克×6</div>
+                <div class="mc ok"><i>🍗</i>鸡里脊</div>
+                <div class="mc bad"><i>🐷</i>猪蹄×2</div>
+                <div class="mc ok"><i>🥩</i>黑猪棒骨 550克</div>
+                <div class="mc ok"><i>🥓</i>亚麻籽猪通脊</div>
+              </div>
+            </div>
+          </div>
+          <div class="shot"><div class="shot-title">食谱库</div>
+            <div class="mini">
+              <div class="m-blue-t">🥘 食谱库 (Recipes)</div>
+              <div class="m-sub2">共 25 道菜 · 当前可立即烹饪 0 道</div>
+              <div class="m-chips2"><span class="on">全部</span><span>家常菜</span><span>硬菜</span><span>素菜</span></div>
+              <div class="m-recipe">
+                <div class="mr-photo">🍅🍳</div>
+                <div class="mr-l"><b>番茄炒蛋</b><span>缺 3 种</span></div>
+                <div class="mr-m">⏱ 10分钟 · 难度 简单 · 2人份</div>
+                <div class="mr-miss">🛒 还缺：番茄、鸡蛋、小葱</div>
+              </div>
+              <div class="m-recipe">
+                <div class="mr-photo">🥬🥩</div>
+                <div class="mr-l"><b>青椒肉丝</b><span>缺 2 种</span></div>
+                <div class="mr-m">⏱ 15分钟 · 难度 简单 · 2人份</div>
+              </div>
+            </div>
+          </div>
+          <div class="shot"><div class="shot-title">食材详情</div>
+            <div class="mini"><div class="mini-hero">🍓</div>
+              <div class="mini-name">草莓 <span class="tag warn">2 天后到期</span></div>
+              <div class="mini-prop">📥 入库：2026-10-30</div>
+              <div class="mini-prop">📅 保质期至：2026-11-03</div>
+              <div class="mini-prop">📍 冷藏室 · 第 1 层</div>
+              <div class="mini-prop">💰 ¥12.9 · 250g</div>
+              <div class="mini-btns"><span class="mb tonal">修改信息</span><span class="mb filled">消耗 50g</span></div>
+            </div>
+          </div>
+          <div class="shot"><div class="shot-title">花费统计</div>
+            <div class="mini"><div class="mini-bar">📊 花费统计</div>
+              <div class="mini-stat"><i>库存总花费</i><b>¥328.60</b></div>
+              <div class="mini-stat"><i>本月入库花费</i><b>¥186.20</b></div>
+              <div class="mini-stat"><i>临期风险金额</i><b class="warn-text">¥42.30</b></div>
+              <div class="mini-bars"><div class="bar" style="--h:64%"><i>蔬果</i></div><div class="bar" style="--h:88%"><i>肉禽</i></div><div class="bar" style="--h:40%"><i>乳品</i></div><div class="bar" style="--h:26%"><i>其他</i></div></div>
+            </div>
+          </div>
+          <div class="shot"><div class="shot-title">设置</div>
+            <div class="mini"><div class="mini-bar">⚙️ 设置</div>
+              <div class="mini-set"><span>🌐 语言 · 简体中文</span><em>›</em></div>
+              <div class="mini-set"><span>🧊 冰箱分层设置</span><em>›</em></div>
+              <div class="mini-set"><span>📦 其他位置存放容器</span><em>›</em></div>
+              <div class="mini-set"><span>🔗 智能硬件设备</span><em>›</em></div>
+              <div class="mini-set"><span>🚀 预览体验计划</span><em>›</em></div>
+              <div class="mini-ver">版本号 v2.2.7.900.beta</div>
+            </div>
+          </div>
+        </div>
+        <button class="car-btn next" id="carNext" aria-label="下一屏">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4 13 9.5 7.5 15"/></svg>
+        </button>
+      </div>
+      <div class="dots" id="carDots"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 更新日志 ══════════ -->
+  <section class="section" id="changelog">
+    <div class="container narrow">
+      <h2 class="reveal">查看多味厨房的最新更新。</h2>
+      <div class="timeline">
+        <div class="tl-item reveal">
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-head"><span class="lime-badge">当前版本</span><b>v2.2 系列</b><span class="tl-date">预览体验中 · v2.2.7</span></div>
+            <ul>
+              <li>🧾 小票自动识别：拍照 → AI 提取品名、克数与价格 → 批量入库</li>
+              <li>📈 实时食材占比仪表盘、历史删除日志</li>
+              <li>🔗 米家智能冰箱连接与调控（实验功能）</li>
+              <li>🖼️ 3D 冰箱视图与三种首页视图切换</li>
+              <li>💡 多味贴士</li>
+            </ul>
+          </div>
+        </div>
+        <div class="tl-item reveal" data-delay="1">
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-head"><b>v2.1 系列</b></div>
+            <ul><li>界面与功能持续打磨，加入预览体验计划可抢先试用新功能</li></ul>
+          </div>
+        </div>
+        <div class="tl-item reveal" data-delay="2">
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-head"><b>v2.0 系列</b><span class="tl-date">正式发布</span></div>
+            <ul><li>🍳 多味厨房 2.0 版本系列正式发布</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="beta-card reveal">
+        <div>
+          <h4>🚀 预览体验计划</h4>
+          <p>加入后可抢先试用新功能，并同时接收 Beta 版更新推送。可在「设置 → 预览体验计划」中开启。</p>
+        </div>
+        <button class="m3-switch lg on" id="betaSwitch" aria-label="预览体验计划开关"><span class="knob"></span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 下载（双版本大卡片） ══════════ -->
+  <section class="section download" id="download">
+    <div class="container">
+      <h2 class="reveal">选择适合你的版本。</h2>
+      <div class="dl-cards">
+        <!-- 正式版 -->
+        <article class="dl-card dl-stable reveal" data-delay="0">
+          <p class="card-label">正式版 · Stable</p>
+          <h3>稳定省心，<br />日常使用的放心之选。</h3>
+          <a class="btn btn-outline" href="#" data-snackbar="🎉 正式版下载通道即将开放，敬请期待！">
+            下载正式版
+            <svg class="arr" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14 14 6M7.5 6H14v6.5"/></svg>
+          </a>
+          <div class="dl-visual stable-v" aria-hidden="true">
+            <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+            <div class="dv-pot">
+              <svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="#2E7D32" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M10 44H38V20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474V44Z"/>
+                <path d="M38 22.0437C38 21.8001 38 21.4346 38 20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474C10 21.4332 10 21.7975 10 22.0404L38 22.0437Z"/>
+                <path d="M4 22H44"/>
+                <path d="M21 4H27"/>
+              </svg>
+            </div>
+            <div class="dv-tile t1">🧊</div>
+            <div class="dv-tile t2">⏰</div>
+          </div>
+        </article>
+        <!-- 预览版 -->
+        <article class="dl-card dl-beta reveal" data-delay="1">
+          <p class="card-label">预览体验版 · Beta</p>
+          <h3>抢先试用新功能，<br />和我们一起打磨。</h3>
+          <a class="btn btn-outline" href="#" data-snackbar="🚀 预览版下载通道即将开放；也可在应用内「设置 → 预览体验计划」开启">
+            下载预览版
+            <svg class="arr" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14 14 6M7.5 6H14v6.5"/></svg>
+          </a>
+          <div class="dl-visual beta-v" aria-hidden="true">
+            <div class="dv-circle"></div>
+            <div class="dv-mini">
+              <div class="dvm-row"><span>🚀 预览体验计划</span><span class="m3-switch sm on"><span class="knob"></span></span></div>
+              <div class="dvm-row"><span>📥 接收 Beta 更新推送</span><em>已开启</em></div>
+              <div class="dvm-ver">当前版本 v2.2.7.900.beta</div>
+            </div>
+            <div class="dv-float f1">🤖</div>
+            <div class="dv-float f2">📈</div>
+            <div class="dv-float f3">🧾</div>
+          </div>
+        </article>
+      </div>
+      <p class="dl-footnote reveal">两个版本都免费 · 适配 Android 8.0 及以上设备 · 预览体验可在应用内「设置 → 预览体验计划」开启</p>
+    </div>
+  </section>
+
+  <!-- ══════════ FAQ ══════════ -->
+  <section class="section" id="faq">
+    <div class="container narrow">
+      <h2 class="reveal">常见问题。</h2>
+      <div class="faq-list reveal" data-delay="1">
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">多味厨房是免费的吗？<span class="faq-arrow"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7.5 10 13.5 16 7.5"/></svg></span></button>
+          <div class="faq-a"><div class="faq-a-inner">应用免费使用。AI 智能菜谱与小票识别的模型调用由开发者统一提供（应用内「设置」中显示「已接入 · glm-4-flash」）。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">支持哪些设备与系统版本？<span class="faq-arrow"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7.5 10 13.5 16 7.5"/></svg></span></button>
+          <div class="faq-a"><div class="faq-a-inner">适配 Android 8.0 及以上机型。通知权限用于每天 9:00 的临期提醒，拒绝后其他功能不受影响，之后也可在系统设置中重新开启。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">如何和家人共用一台冰箱？<span class="faq-arrow"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7.5 10 13.5 16 7.5"/></svg></span></button>
+          <div class="faq-a"><div class="faq-a-inner">注册时输入对方厨房的多味共享码（邀请码）即可加入同一间厨房；留空则自动新建厨房。邀请码可在「设置 → 家庭共享」中查看，厨房创建者可随时重新生成，另支持成员权限管理与多厨房切换。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">米家冰箱连接是如何实现的？<span class="faq-arrow"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7.5 10 13.5 16 7.5"/></svg></span></button>
+          <div class="faq-a"><div class="faq-a-inner">通过小米官方网页安全登录（支持图形验证码、两步验证与短信扫码）同步米家设备列表，即可远程设定冷藏 / 冷冻温度（冷藏通常 2~8℃、冷冻 -15~-24℃）与速冷、速冻模式。该功能目前为实验功能，不同型号支持的指令略有差异，将持续优化。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">AI 菜谱是怎么工作的？<span class="faq-arrow"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7.5 10 13.5 16 7.5"/></svg></span></button>
+          <div class="faq-a"><div class="faq-a-inner">由 GLM-4-Flash 大模型流式生成：可以根据冰箱现有食材推荐「缺啥吃啥」，也可以按菜名直接生成。生成的菜谱自动存入菜谱库，与本地菜谱合并展示，还能通过对话修改菜谱，修改会持久保存。</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">我的数据会丢失吗？小票识别安全吗？<span class="faq-arrow"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7.5 10 13.5 16 7.5"/></svg></span></button>
+          <div class="faq-a"><div class="faq-a-inner">登录账号后数据通过云端实时同步，多设备保持一致；历史删除日志可随时回看。小票照片仅用于识别食材的名称、克数与价格，结果由你确认后才会入库。首次启动向导提供完整的《用户协议与隐私政策》，协议全文也会保存在手机中。</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 页脚 ══════════ -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="logo" href="#top">
+          <span class="logo-tile"><svg viewBox="0 0 48 48" width="22" height="22" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 44H38V20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474V44Z"/><path d="M38 22.0437C38 21.8001 38 21.4346 38 20.9474C38 14.9013 31.732 10 24 10C16.268 10 10 14.9013 10 20.9474C10 21.4332 10 21.7975 10 22.0404L38 22.0437Z"/><path d="M4 22H44"/><path d="M21 4H27"/></svg></span>
+          <span>多味厨房</span>
+        </a>
+        <p class="footer-slogan">🌿 绿色健康 · 绿色食品 · 可持续生活</p>
+        <p class="footer-copy">🍳 多味厨房 @XiaoYing 原创作品</p>
+      </div>
+      <div class="footer-col">
+        <h5>产品</h5>
+        <a href="#new">新功能</a>
+        <a href="#features">全部功能</a>
+        <a href="#screens">界面预览</a>
+        <a href="#changelog">更新日志</a>
+      </div>
+      <div class="footer-col">
+        <h5>支持</h5>
+        <a href="#download">下载 App</a>
+        <a href="#faq">常见问题</a>
+        <a href="#family">家庭共享</a>
+        <a href="#changelog">预览体验计划</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <span>© 2026 多味厨房 Duowei Kitchen · @XiaoYing</span>
+        <span>Android 是 Google LLC 的商标。米家 / 小米为小米集团的商标，本站仅作功能说明。</span>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<!-- 返回顶部 FAB -->
+<button class="fab" id="backTop" aria-label="返回顶部">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 8l-6 6 1.4 1.4L12 10.8l4.6 4.6L18 14l-6-6z"/></svg>
+</button>
+
+<!-- Snackbar -->
+<div class="snackbar" id="snackbar" role="status"></div>
+
+<script src="assets/main.js"></script>
 </body>
 </html>
